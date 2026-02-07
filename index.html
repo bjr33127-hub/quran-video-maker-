@@ -1,10 +1,12 @@
-<!doctype html>
+ <!doctype html>
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Lecteur Quran — 1 ligne (QUL) + Tajwîd + Local + Mp3Quran</title>
-  <link rel="icon" type="image/png" sizes="512x512" href="./logo.png?v=2">
+  <title>Quran Video Maker</title>
+  <link rel="icon" type="image/png" sizes="512x512" href="./logo.png">
+
+
 
 
 
@@ -25,6 +27,7 @@
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
     .app{height:100vh;display:flex;flex-direction:column;gap:12px;padding:14px;overflow:hidden}
+    
     .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--panel);border-radius:var(--r);padding:10px 12px}
     .pill{display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06)}
     label{font-size:12px;color:var(--muted)}
@@ -487,164 +490,56 @@
       select, button{ font-size: 13.5px; }
     }
     /* =========================
-   STAGE LOGO (top-right overlay + hover)
+   BRAND / LOGO (top bar)
    ========================= */
-.stage{ position:relative; } /* pour ancrer l'overlay au stage */
+.brand{
 
-.stage-logo{
-  position:absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 30;
-
-  width: 88px;
-  height: 88px;
-  padding: 10px;
-  border-radius: 18px;
-
-  display:grid;
-  place-items:center;
-
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
-  box-shadow: 0 18px 40px rgba(0,0,0,.35);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-
-  transform: translateZ(0);
-  transition:
-    transform .18s ease,
-    box-shadow .18s ease,
-    border-color .18s ease,
-    background .18s ease,
-    filter .18s ease;
-  text-decoration:none;
-}
-
-/* Logo overlay — modern glass + luxe halo (no layout change) */
-.stage{ position:relative; }
-
-.stage-logo{
-  position:absolute;
-  top: 12px;
-  right: 12px;
-  width: 74px;
-  height: 74px;
-  border-radius: 18px;
-
-  display:grid;
-  place-items:center;
-
-  /* glass */
-  background: rgba(18,24,38,.34);
+  right: 24px;
+    position: absolute;
+    bottom: 24px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:6px 10px;
+  border-radius:14px;
+  background: rgba(255,255,255,.05);
   border: 1px solid rgba(255,255,255,.10);
-  backdrop-filter: blur(14px) saturate(1.25);
-  -webkit-backdrop-filter: blur(14px) saturate(1.25);
-
-  box-shadow:
-    0 22px 60px rgba(0,0,0,.50),
-    0 0 0 1px rgba(255,255,255,.06) inset;
-
-  cursor:pointer;
-  user-select:none;
-  -webkit-tap-highlight-color: transparent;
-
-  transition:
-    transform 220ms cubic-bezier(.2,.9,.2,1),
-    background 220ms ease,
-    border-color 220ms ease,
-    box-shadow 220ms ease,
-    filter 220ms ease;
+  box-shadow: 0 10px 22px rgba(0,0,0,.18);
 }
 
-.stage-logo img{
-  width: 92%;
-  height: 92%;
+.brand img{
+  width: 35px;          /* 🔥 augmente ici si tu veux plus gros */
+  height: 35px;
   object-fit: contain;
-  transform: translateZ(0);
-  filter: drop-shadow(0 14px 30px rgba(0,0,0,.44));
-  transition: transform 240ms cubic-bezier(.2,.9,.2,1), filter 240ms ease;
+  filter: drop-shadow(0 10px 22px rgba(0,0,0,.35));
+  user-select:none;
+  -webkit-user-drag:none;
 }
 
-/* micro grain (premium) */
-.stage-logo::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius: inherit;
-  pointer-events:none;
-  background:
-    radial-gradient(120% 120% at 20% 10%, rgba(255,255,255,.18) 0%, transparent 55%),
-    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.01));
-  opacity:.55;
-  mix-blend-mode: screen;
-  transition: opacity 240ms ease, transform 240ms ease;
+.brandText{
+  display:flex;
+  flex-direction:column;
+  line-height:1.05;
+  min-width: 110px;
 }
 
-/* luxe halo ring */
-.stage-logo::after{
-  content:"";
-  position:absolute;
-  inset:-10px;
-  border-radius: 22px;
-  pointer-events:none;
-  background:
-    radial-gradient(circle at 30% 20%, rgba(247,212,106,.26), transparent 48%),
-    radial-gradient(circle at 70% 80%, rgba(125,211,255,.18), transparent 52%);
-  filter: blur(10px);
-  opacity: 0;
-  transform: scale(.96);
-  transition: opacity 260ms ease, transform 260ms cubic-bezier(.2,.9,.2,1);
+.brandTitle{
+  font-weight:600;
+  letter-spacing:.2px;
+  font-size: 14px;
+  color: rgba(255,255,255,.95);
+  white-space:nowrap;
 }
 
-/* Hover: ultra clean, modern, “luxe” */
-.stage-logo:hover{
-  transform: translateY(-4px);
-  background: rgba(18,24,38,.46);
-  border-color: rgba(255,255,255,.18);
-  box-shadow:
-    0 30px 90px rgba(0,0,0,.58),
-    0 0 0 1px rgba(255,255,255,.08) inset,
-    0 0 34px rgba(247,212,106,.10);
+.brandSub{
+  font-size: 11px;
+  color: rgba(255,255,255,.65);
+  white-space:nowrap;
 }
 
-.stage-logo:hover::before{
-  opacity:.78;
-  transform: translateY(-1px);
-}
-
-.stage-logo:hover::after{
-  opacity: 1;
-  transform: scale(1);
-}
-
-.stage-logo:hover img{
-  transform: scale(1.06);
-  filter: drop-shadow(0 18px 38px rgba(0,0,0,.52));
-}
-
-/* Press (feels premium) */
-.stage-logo:active{
-  transform: translateY(-2px);
-  box-shadow:
-    0 22px 70px rgba(0,0,0,.55),
-    0 0 0 1px rgba(255,255,255,.06) inset;
-}
-
-@media (max-width:520px){
-  .stage-logo{ width: 62px; height: 62px; border-radius: 16px; }
-}
-
-/* mobile */
-@media (max-width: 680px){
-  .stage-logo{
-    width: 74px;
-    height: 74px;
-    padding: 8px;
-    border-radius: 16px;
-    top: 10px;
-    right: 10px;
-  }
+@media (max-width: 720px){
+  .brandText{ display:none; } /* sur mobile: logo seul */
+  .brand img{ width: 46px; height: 46px; }
 }
 
   </style>
@@ -652,12 +547,7 @@
 
 <body>
 <div class="app">
-   <a class="stage-logo" href="#" aria-label="Quran Video Maker" title="Quran Video Maker">
-    <img src="./logo.png" alt="Quran Video Maker">
-  </a>
-
   <div class="bar">
-    
     <div class="pill"><label for="surah">Sourate</label><select id="surah"></select></div>
     <div class="pill"><label for="ayah">Verset</label><select id="ayah"></select></div>
     <div class="pill"><label for="reciter">Récitateur</label><select id="reciter"></select></div>
@@ -713,10 +603,11 @@
 
     <div class="spacer"></div>
     <div class="status" id="status">Prêt</div>
+ 
   </div>
+  
 
   <div class="stage">
-     
     <div class="meta" id="meta">—</div>
 
     <div class="content">
@@ -734,7 +625,16 @@
       <div class="dbg" id="dbg" style="display:none;"></div>
     </div>
 
-    <div class="footer" id="footer">Traduction : —</div>
+    <div class="footer" id="footer"> Traduction : —</div>
+         <!-- ✅ Brand / Logo -->
+  <div class="brand" title="Quran Video Maker">
+    <img src="./logo.png" alt="Quran Video Maker logo" draggable="false">
+    <div class="brandText">
+      <div class="brandTitle">Quran Video Maker</div>
+      <div class="brandSub">Lecteur + OBS </div>
+    </div>
+  </div>
+
   </div>
 
   <audio id="audio" preload="auto"></audio>
@@ -863,7 +763,13 @@
   document.documentElement.dataset.mobile = mobileMode ? "1" : "0";
   const MOBILE_WRAP_MAX_PX = 800;     // largeur max de ligne
   const MOBILE_WRAP_SCALE = 0.72;     // proportion
-  // (listener ajouté plus bas dans la section Events)
+  $mobileMode.addEventListener("change", () => {
+    mobileMode = !!$mobileMode.checked;
+    document.documentElement.dataset.mobile = mobileMode ? "1" : "0";
+    if(ayahs?.length){
+      recomputeLinesForAllAyahs();
+    }
+  });
 
   // ===== Helpers =====
   const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -873,10 +779,7 @@
   function clearErr(){ $err.style.display="none"; $err.textContent=""; }
   function showDbg(msg){ $dbg.style.display=""; $dbg.textContent = msg; }
   function clearDbg(){ $dbg.style.display="none"; $dbg.textContent=""; }
-  function pad3(n){
-    const num = Number(n);
-    return String(Number.isFinite(num) ? num : 0).padStart(3, "0");
-  }
+  function pad3(n){ return String(Number(n)).padStart(3, "0"); }
 
   async function fetchWithTimeout(url, ms=12000){
     const ctrl = new AbortController();
@@ -1052,31 +955,6 @@
       break;
     }
     return div.innerHTML.trim();
-  }
-
-  // Minimal sanitizer: retire scripts / iframes et attributs event-js
-  function sanitizeTajweedHtml(html){
-    if(!html) return "";
-    const d = document.createElement('div');
-    d.innerHTML = String(html);
-    // remove dangerous elements
-    const banned = d.querySelectorAll('script,iframe,object,embed,style');
-    banned.forEach(n => n.remove());
-    // strip event handler attributes and javascript: URIs
-    const els = d.querySelectorAll('*');
-    for(const el of els){
-      // remove attributes starting with on
-      for(const attr of Array.from(el.attributes)){
-        const name = attr.name.toLowerCase();
-        const val = String(attr.value || '');
-        if(name.startsWith('on')){ el.removeAttribute(attr.name); continue; }
-        if((name === 'href' || name === 'src') && /^\s*javascript:/i.test(val)){
-          el.removeAttribute(attr.name);
-          continue;
-        }
-      }
-    }
-    return d.innerHTML;
   }
 
   // ===== Tokenisation (tajweed HTML -> tokens mots) =====
@@ -1294,8 +1172,7 @@
         const inSurah = Number(v.verse_number);
         const verseKey = String(v.verse_key || `${chapterNumber}:${inSurah}`);
         const rawHtml = String(v.text_uthmani_tajweed || "");
-        let cleaned = stripTrailingAyahNumberHtml(rawHtml);
-        cleaned = sanitizeTajweedHtml(cleaned);
+        const cleaned = stripTrailingAyahNumberHtml(rawHtml);
         if(Number.isFinite(inSurah)){
           out.push({ inSurah, verseKey, arHtmlRaw: cleaned, markerHtml: buildAyahMarkerHtml(inSurah) });
         }
