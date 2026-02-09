@@ -26,6 +26,14 @@ For the OBS template to work properly, you must **download a “requirements” 
 ➡️ Go to the repository **Releases** tab and download the **requirements** ZIP (or the latest “Release asset”).
 
 ---
+## Example Result (Video)
+
+[![Quran Video Maker — demo video](https://img.youtube.com/vi/8JD5a_yC2qc/maxresdefault.jpg)](https://youtu.be/8JD5a_yC2qc?si=gjaUjsg5CeA9ecKf)
+
+This demo shows a Quran recitation video made using:
+- the **local Quran player** (surah/ayah/reciter/translation selection)
+- the **OBS template** (overlay + clean layout)
+- **horizontal/vertical-ready** workflow (record directly from OBS)
 
 ## Requirements
 
