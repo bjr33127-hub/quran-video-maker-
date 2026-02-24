@@ -1019,6 +1019,39 @@
     return /^[،,؛;:!?؟.…]+$/.test(t) || /^[\)\]\}»”’]+$/.test(t);
   }
 
+  function isArabicPauseBoundaryToken(tokenHtml){
+    const t = plainTextFromHtml(tokenHtml).trim();
+    // Marques waqf/pause fréquentes + ponctuation forte
+    return /[ۭ۪ۖۗۚۛۜۘۙ۟۠ۢ۫]/.test(t) || /[،؛.؟!…]/.test(t);
+  }
+
+  function buildPreferredLineBreaks(tokens){
+    const out = new Set();
+    for(let i=1;i<tokens.length;i++){
+      const prev = tokens[i-1] || "";
+      const curTxt = plainTextFromHtml(tokens[i] || "");
+      if(isArabicPauseBoundaryToken(prev)) out.add(i);
+      if(/^(و|ف|ثم|لكن|بل)\b/.test(curTxt)) out.add(i);
+    }
+    return out;
+  }
+
+  function buildPauseBreaksFromSegments(segments, tokensLen){
+    const out = new Set();
+    if(!Array.isArray(segments) || !segments.length || !Number.isFinite(tokensLen)) return out;
+    for(let i=1;i<Math.min(segments.length, tokensLen);i++){
+      const prev = segments[i-1];
+      const cur = segments[i];
+      if(!prev || !cur) continue;
+      const prevEnd = Number(prev[2]);
+      const curStart = Number(cur[1]);
+      if(!Number.isFinite(prevEnd) || !Number.isFinite(curStart)) continue;
+      const gap = curStart - prevEnd;
+      if(gap >= 180) out.add(i);
+    }
+    return out;
+  }
+
   function buildCountMap(tokens){
     const countBefore = new Array(tokens.length + 1).fill(0);
     for(let i=0;i<tokens.length;i++){
@@ -1056,9 +1089,15 @@
     }
 
     const setMeasureRange = (s,e) => {
-      $measure.innerHTML = `<span class="rtl-line">${wrapped.slice(s,e).join("")}</span>`;
+      $measure.innerHTML = `<span class="rtl-line">${wrapped.slice(s,e).join(" ")}</span>`;
     };
     const fits = (s,e) => { setMeasureRange(s,e); return $measure.scrollWidth <= widthPx; };
+
+    const preferredBreaks = buildPreferredLineBreaks(tokens);
+    const extraBreaks = opts.extraPreferredBreaks instanceof Set ? opts.extraPreferredBreaks : null;
+    if(extraBreaks){
+      for(const b of extraBreaks) preferredBreaks.add(b);
+    }
 
     const lines = [];
     let start = 0;
@@ -1078,7 +1117,18 @@
         else hi = mid - 1;
       }
 
-      // 2) ✅ rattacher la ponctuation (",", "،", "…", ")", etc.) si elle tomberait au début de la ligne suivante
+      // 2) ✅ privilégier une coupure sur marque de pause/signe proche de la fin de ligne
+      let bestPreferred = -1;
+      const backMin = Math.max(start + 1, best - 12);
+      for(let cand = best; cand >= backMin; cand--){
+        if(preferredBreaks.has(cand) && fits(start, cand)){
+          bestPreferred = cand;
+          break;
+        }
+      }
+      if(bestPreferred > 0) best = bestPreferred;
+
+      // 3) ✅ rattacher la ponctuation (",", "،", "…", ")", etc.) si elle tomberait au début de la ligne suivante
       while(best < tokens.length && isPunctOnlyToken(tokens[best]) && fits(start, best + 1)){
         best += 1;
       }
@@ -1095,56 +1145,262 @@
     return { lines, wordToLine };
   }
 
-  // ===== Traduction proportionnelle =====
-  function splitFrenchByArabicRange(frText, arabStartEff, arabEndEff, arabTotalEff){
+  // ===== Alignement FR <-> AR (heuristiques + DP monotone) =====
+  function normalizeArabicForAlign(s){
+    return String(s || "")
+      .normalize("NFKD")
+      .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, "")
+      .replace(/[ٱأإآ]/g, "ا")
+      .replace(/ة/g, "ه")
+      .replace(/ى/g, "ي")
+      .replace(/[ـ]/g, "")
+      .trim();
+  }
+
+  function normalizeLatinForAlign(s){
+    return String(s || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[’']/g, "'")
+      .trim();
+  }
+
+  function tokenizeFrenchAlignment(frText){
     const raw = String(frText || "");
-    if(!raw.trim()) return "";
-    if(arabTotalEff <= 0) return raw.trim();
-
-    function tokenizeKeepSkips(s){
-      const re = /(\([^)]*\)|\[[^\]]*\]|\s+|[^\s]+)/g;
-      const out = [];
-      let m;
-      while((m = re.exec(s)) !== null){
-        const tok = m[0];
-        if((tok.startsWith("(") && tok.endsWith(")")) || (tok.startsWith("[") && tok.endsWith("]"))){
-          out.push({ type:"skip", text: tok });
-          continue;
-        }
-        if(/^\s+$/.test(tok)){
-          out.push({ type:"sep", text: tok });
-          continue;
-        }
-        const counts = /[\p{L}\p{N}]/u.test(tok);
-        out.push({ type: counts ? "word" : "sep", text: tok, counts });
+    const re = /(\[[^\]]*\]|\([^)]*\)|\s+|[\p{L}\p{N}][\p{L}\p{N}'’\-]*|[^\s])/gu;
+    const tokens = [];
+    const words = [];
+    let m;
+    while((m = re.exec(raw)) !== null){
+      const text = m[0];
+      const start = m.index;
+      const end = start + text.length;
+      let type = "punct";
+      if(/^\s+$/u.test(text)) type = "space";
+      else if((text.startsWith("[") && text.endsWith("]")) || (text.startsWith("(") && text.endsWith(")"))) type = "note";
+      else if(/[\p{L}\p{N}]/u.test(text)) type = "word";
+      const t = { text, start, end, type };
+      if(type === "word"){
+        t.norm = normalizeLatinForAlign(text);
+        t.wi = words.length;
+        words.push(t);
       }
-      return out;
+      tokens.push(t);
+    }
+    const wordBoundaryToChar = new Array(words.length + 1).fill(0);
+    wordBoundaryToChar[0] = 0;
+    for(let i=1;i<words.length;i++) wordBoundaryToChar[i] = words[i].start;
+    wordBoundaryToChar[words.length] = raw.length;
+    return { raw, tokens, words, wordBoundaryToChar };
+  }
+
+  function buildPhraseBoundariesArabic(a){
+    const totalEff = a.totalEff || 0;
+    const boundaries = new Set([0, totalEff]);
+    for(let ti=0; ti<a.tokens.length; ti++){
+      const effAfter = a.countBefore?.[ti+1] ?? 0;
+      if(effAfter <= 0 || effAfter >= totalEff) continue;
+      if(isArabicPauseBoundaryToken(a.tokens[ti])) boundaries.add(effAfter);
+      if(isPunctOnlyToken(a.tokens[ti])) boundaries.add(effAfter);
+    }
+    for(let e=4;e<totalEff;e+=4) boundaries.add(e);
+    return Array.from(boundaries).sort((x,y)=>x-y);
+  }
+
+  function buildClauseBoundariesFrench(frTok){
+    const m = frTok.words.length;
+    const boundaries = new Set([0, m]);
+    const frConnectors = new Set(["et","puis","ensuite","mais","or","car","donc","alors","si","lorsque","quand"]);
+    for(let i=1;i<m;i++){
+      const prevToken = frTok.words[i-1];
+      const nextToken = frTok.words[i];
+      const between = frTok.raw.slice(prevToken.end, nextToken.start);
+      if(/[.;:!?…]/.test(between) || /[,،]/.test(between)) boundaries.add(i);
+      if(frConnectors.has(nextToken.norm)) boundaries.add(i);
+    }
+    return Array.from(boundaries).sort((x,y)=>x-y);
+  }
+
+  function boundaryStrengthArabic(a, effPos){
+    for(let ti=0; ti<a.tokens.length; ti++){
+      const after = a.countBefore?.[ti+1] ?? 0;
+      if(after !== effPos) continue;
+      if(isArabicPauseBoundaryToken(a.tokens[ti])) return 2;
+      if(isPunctOnlyToken(a.tokens[ti])) return 1;
+    }
+    return 0;
+  }
+
+  function boundaryStrengthFrench(frTok, wPos){
+    if(wPos <= 0 || wPos >= frTok.words.length) return 2;
+    const prev = frTok.words[wPos-1];
+    const next = frTok.words[wPos];
+    const between = frTok.raw.slice(prev.end, next.start);
+    if(/[.;:!?…]/.test(between)) return 2;
+    if(/[,،]/.test(between)) return 1;
+    return 0;
+  }
+
+  function mapArabicBoundariesToFrench(a, frTok, B_ar, B_fr){
+    const totalEff = Math.max(1, a.totalEff || 1);
+    const m = Math.max(1, frTok.words.length);
+    const map = new Array(B_ar.length).fill(0);
+    map[0] = 0;
+    map[B_ar.length - 1] = B_fr.length - 1;
+
+    let prevJ = 0;
+    for(let i=1;i<B_ar.length-1;i++){
+      const e = B_ar[i];
+      const target = (e / totalEff) * m;
+      const arStrength = boundaryStrengthArabic(a, e);
+      let bestJ = prevJ + 1;
+      let bestScore = Number.POSITIVE_INFINITY;
+      for(let j=prevJ+1; j<B_fr.length-1; j++){
+        const w = B_fr[j];
+        const frStrength = boundaryStrengthFrench(frTok, w);
+        const dist = Math.abs(w - target) / Math.max(1, m);
+        let score = dist;
+        if(arStrength >= 2 && frStrength < 2) score += 0.45;
+        if(arStrength >= 1 && frStrength === 0) score += 0.18;
+        if(score < bestScore){
+          bestScore = score;
+          bestJ = j;
+        }
+      }
+      map[i] = bestJ;
+      prevJ = bestJ;
+    }
+    return map;
+  }
+
+  function buildFrenchAlignmentForAyah(a){
+    const frText = String(a.frText || "");
+    const totalEff = a.totalEff || 0;
+    const fallback = { frTok: tokenizeFrenchAlignment(frText), frWordBoundaryAtEff: new Array(totalEff + 1).fill(0) };
+    if(!frText.trim() || totalEff <= 0){
+      if(totalEff > 0) fallback.frWordBoundaryAtEff[totalEff] = fallback.frTok.words.length;
+      return fallback;
     }
 
-    const toks = tokenizeKeepSkips(raw);
-    const wordTokenIdx = [];
-    for(let i=0;i<toks.length;i++){
-      if(toks[i].type === "word") wordTokenIdx.push(i);
+    const frTok = tokenizeFrenchAlignment(frText);
+    const m = frTok.words.length;
+    const frWordBoundaryAtEff = new Array(totalEff + 1).fill(0);
+    if(m <= 1 || totalEff <= 3){
+      for(let e=0;e<=totalEff;e++) frWordBoundaryAtEff[e] = Math.round((e / Math.max(1, totalEff)) * m);
+      return { frTok, frWordBoundaryAtEff };
     }
-    if(!wordTokenIdx.length) return raw.trim();
 
-    const mWords = wordTokenIdx.length;
-    const s = Math.floor((arabStartEff / arabTotalEff) * mWords);
-    const e = Math.max(s + 1, Math.floor((arabEndEff / arabTotalEff) * mWords));
+    const B_ar = buildPhraseBoundariesArabic(a);
+    const B_fr = buildClauseBoundariesFrench(frTok);
+    const nA = B_ar.length;
+    const mapBoundary = mapArabicBoundariesToFrench(a, frTok, B_ar, B_fr);
 
-    const ws = Math.max(0, Math.min(mWords - 1, s));
-    const we = Math.max(ws + 1, Math.min(mWords, e));
+    for(let s=1;s<nA;s++){
+      const arS = B_ar[s-1], arE = B_ar[s];
+      const frS = B_fr[mapBoundary[s-1]] ?? 0;
+      const frE = B_fr[mapBoundary[s]] ?? m;
+      const den = Math.max(1, arE - arS);
+      for(let e=arS;e<=arE;e++){
+        const r = (e - arS) / den;
+        frWordBoundaryAtEff[e] = clamp(Math.round(frS + (frE - frS) * r), 0, m);
+      }
+    }
 
-    const startTok = wordTokenIdx[ws];
-    const endTok   = wordTokenIdx[we - 1];
+    for(let e=1;e<=totalEff;e++) frWordBoundaryAtEff[e] = Math.max(frWordBoundaryAtEff[e], frWordBoundaryAtEff[e-1]);
+    frWordBoundaryAtEff[totalEff] = m;
+    return { frTok, frWordBoundaryAtEff };
+  }
 
-    let a = startTok;
-    while(a > 0 && toks[a-1].type === "skip") a--;
-    let b = endTok;
-    while(b + 1 < toks.length && toks[b+1].type === "skip") b++;
+  function computeFrLinesForAyah(a){
+    const out = new Array(a.lines?.length || 0).fill("");
+    const trOn = !!selectedTrKey;
+    if(!trOn || !a.frTok?.raw?.trim()) return out;
+    if((a.totalEff || 0) <= 3 || (a.lines?.length || 0) <= 1) return out.map(() => a.frTok.raw.trim());
 
-    const slice = toks.slice(a, b + 1).map(x => x.text).join("");
-    return slice.trim();
+    const n = a.lines.length;
+    const m = a.frTok.words.length;
+    if(m <= 1) return out.map(() => a.frTok.raw.trim());
+
+    const arLineEff = a.lines.map(ln => {
+      const s = a.countBefore?.[ln.start] || 0;
+      const e = a.countBefore?.[ln.end] || s;
+      return Math.max(1, e - s);
+    });
+    const totalAr = Math.max(1, arLineEff.reduce((x,y)=>x+y, 0));
+
+    const frBoundaryStrength = (wPos) => {
+      if(wPos <= 0 || wPos >= m) return 2;
+      const prev = a.frTok.words[wPos-1];
+      const next = a.frTok.words[wPos];
+      const between = a.frTok.raw.slice(prev.end, next.start);
+      if(/[.;:!?…]/.test(between)) return 2;
+      if(/[,،]/.test(between)) return 1;
+      return 0;
+    };
+    const arLineEndStrength = (li) => {
+      const ln = a.lines[li];
+      const endTok = Math.max(ln.start, ln.end - 1);
+      const tok = a.tokens[endTok] || "";
+      if(isArabicPauseBoundaryToken(tok)) return 2;
+      if(isPunctOnlyToken(tok)) return 1;
+      return 0;
+    };
+
+    const INF = 1e15;
+    const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(INF));
+    const prev = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(-1));
+    dp[0][0] = 0;
+
+    for(let i=1;i<=n;i++){
+      const expected = (arLineEff[i-1] / totalAr) * m;
+      const minJ = i;
+      const maxJ = m - (n - i);
+      for(let j=minJ;j<=maxJ;j++){
+        const minK = i - 1;
+        for(let k=minK;k<j;k++){
+          if(!Number.isFinite(dp[i-1][k])) continue;
+          const seg = j - k;
+          let cost = dp[i-1][k];
+
+          cost += Math.abs(seg - expected) / Math.max(1, expected);
+          if(seg <= 1 && expected > 2) cost += 0.75;
+
+          const arS = arLineEndStrength(i-1);
+          const frS = frBoundaryStrength(j);
+          if(arS === 2 && frS < 2) cost += 0.5;
+          if(arS >= 1 && frS === 0) cost += 0.2;
+
+          if(cost < dp[i][j]){
+            dp[i][j] = cost;
+            prev[i][j] = k;
+          }
+        }
+      }
+    }
+
+    const bounds = new Array(n + 1).fill(0);
+    bounds[n] = m;
+    if(Number.isFinite(dp[n][m])){
+      let i = n, j = m;
+      while(i > 0){
+        bounds[i-1] = prev[i][j];
+        j = prev[i][j];
+        i--;
+      }
+    } else {
+      bounds[0] = 0;
+      for(let i=1;i<n;i++) bounds[i] = clamp(Math.round((i / n) * m), bounds[i-1] + 1, m - (n - i));
+    }
+
+    for(let li=0; li<n; li++){
+      const ws = clamp(bounds[li], 0, m);
+      const we = (li === n-1) ? m : clamp(Math.max(ws + 1, bounds[li+1]), 0, m);
+      const c0 = a.frTok.wordBoundaryToChar[ws] ?? 0;
+      const c1 = a.frTok.wordBoundaryToChar[we] ?? a.frTok.raw.length;
+      out[li] = a.frTok.raw.slice(c0, c1).trim() || a.frTok.raw.trim();
+    }
+    return out;
   }
 
   // ===== Quran.com tajweed fetch =====
@@ -1493,7 +1749,7 @@
         const tok = a.tokens[i];
         parts.push(`<span class="w" data-i="${i}">${tok}</span>`);
       }
-      const lineHtml = `<span class="rtl-line">${parts.join("")}</span>`;
+      const lineHtml = `<span class="rtl-line">${parts.join(" ")}</span>`;
       $ar.innerHTML = lineHtml + (isLastLine ? (a.markerHtml||"") : "");
       tries++;
       if($ar.scrollWidth <= maxW) break;
@@ -1519,12 +1775,7 @@
     let ln = a.lines[li] || { start:0, end:a.tokens.length };
     const isLastLine = (li === a.lines.length - 1);
 
-    const frAll = a.frText || frByAya.get(a.inSurah) || "";
-    const ab = a.countBefore || buildCountMap(a.tokens).countBefore;
-    const totalEff = a.totalEff ?? (ab[ab.length-1] || 0);
-    const startEff = ab[ln.start] || 0;
-    const endEff = ab[ln.end] || 0;
-    $fr.textContent = ($trKey.value ? (splitFrenchByArabicRange(frAll, startEff, endEff, totalEff) || "") : "");
+    $fr.textContent = ($trKey.value ? (a.frLines?.[li] || a.frText || "") : "");
 
     if(!wbwEnabled){
       const chunkHtml = a.tokens.slice(ln.start, ln.end).join(" ");
@@ -1543,7 +1794,7 @@
         const tok = a.tokens[i];
         parts.push(`<span class="w" data-i="${i}">${tok}</span>`);
       }
-      const lineHtml = `<span class="rtl-line">${parts.join("")}</span>`;
+      const lineHtml = `<span class="rtl-line">${parts.join(" ")}</span>`;
       $ar.innerHTML = lineHtml + (isLastLine ? (a.markerHtml||"") : "");
 
       ln = enforceNoOverflow(a, ln, isLastLine);
@@ -2157,9 +2408,10 @@
 
     for(const a of ayahs){
       if(!a.tokens) continue;
-      const { lines, wordToLine } = computeLinesForTokensFast(a.tokens, usableWidth, $ar, { slackPx });
+      const { lines, wordToLine } = computeLinesForTokensFast(a.tokens, usableWidth, $ar, { slackPx, extraPreferredBreaks: a.pauseBreaks });
       a.lines = lines;
       a.wordToLine = wordToLine;
+      a.frLines = computeFrLinesForAyah(a);
     }
     renderedLineKey = "";
     renderQulLine(clamp(currentLineIdx, 0, (ayahs[idx]?.lines?.length||1)-1), currentWordIdx >= 0 ? currentWordIdx : 0);
@@ -2209,7 +2461,11 @@
           tokens, lines, wordToLine,
           countBefore, totalEff: total,
           effToTok,
-          frText
+          pauseBreaks: null,
+          frText,
+          frTok: null,
+          frWordBoundaryAtEff: null,
+          frLines: []
         };
       });
 
@@ -2228,7 +2484,11 @@
           tokens, lines, wordToLine,
           countBefore, totalEff: total,
           effToTok,
-          frText
+          pauseBreaks: null,
+          frText,
+          frTok: null,
+          frWordBoundaryAtEff: null,
+          frLines: []
         };
       });
 
@@ -2241,7 +2501,8 @@
         const entry = mapS.get(v.inSurah);
         const frText = frByAya.get(v.inSurah) || "";
         const tokens = tokensFromTajweedHtml(v.arHtmlRaw || "");
-        const { lines, wordToLine } = computeLinesForTokensFast(tokens, usableWidth, $ar, { slackPx });
+        const pauseBreaks = buildPauseBreaksFromSegments(entry?.segments || [], tokens.length);
+        const { lines, wordToLine } = computeLinesForTokensFast(tokens, usableWidth, $ar, { slackPx, extraPreferredBreaks: pauseBreaks });
         const { countBefore, total } = buildCountMap(tokens);
         const effToTok = buildEffToToken(tokens);
 
@@ -2252,9 +2513,20 @@
           tokens, lines, wordToLine,
           countBefore, totalEff: total,
           effToTok,
-          frText
+          pauseBreaks,
+          frText,
+          frTok: null,
+          frWordBoundaryAtEff: null,
+          frLines: []
         };
       });
+    }
+
+    for(const a of ayahs){
+      const al = buildFrenchAlignmentForAyah(a);
+      a.frTok = al.frTok;
+      a.frWordBoundaryAtEff = al.frWordBoundaryAtEff;
+      a.frLines = computeFrLinesForAyah(a);
     }
 
     idx = 0;
