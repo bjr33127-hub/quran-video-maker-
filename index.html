@@ -1,4 +1,4 @@
- <!doctype html>
+<!doctype html> 
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
@@ -6,15 +6,19 @@
   <title>Quran Video Maker</title>
   <link rel="icon" type="image/png" sizes="512x512" href="./logo.png">
 
-
-
-
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&family=Aref+Ruqaa+Ink:wght@400;700&family=Cairo:wght@400;700;900&family=Cinzel:wght@500;700&family=Montserrat:wght@500;700;800&family=Playfair+Display:ital,wght@0,600;0,800;1,600&family=Raleway:wght@500;700;800&family=Reem+Kufi:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
 
   <style>
     :root{
       --bg:#0b0d12; --panel:#121826; --panel2:#0f1522;
       --text:#fff; --muted:rgba(255,255,255,.75);
       --r:18px;
+
+      /* Variables de polices dynamiques */
+      --font-ar: "Amiri", serif;
+      --font-fr: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 
       /* base palette for text FX (changes via data-textfx) */
       --fxA: rgba(255,255,255,.18);
@@ -41,9 +45,9 @@
     .spacer{flex:1}
     .status{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55vw}
 
-    .stage{flex:1;min-height:0;background:var(--panel2);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
-    .meta{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .content{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+    .stage{flex:1;min-height:0;background:var(--panel2);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px;overflow:hidden;position:relative;}
+    .meta{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; z-index:2;}
+    .content{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow:hidden; z-index:2;}
 
     .box{
       flex:1;
@@ -51,8 +55,8 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      padding: 26px 12px 14px;
-      background:rgba(255,255,255,.04);
+      padding: 16px 12px;
+      background:rgba(255,255,255,.03);
       border-radius:16px;
       overflow:hidden;
       position:relative;
@@ -64,10 +68,10 @@
       unicode-bidi:isolate;
       text-align:center;
       margin:0;
-      font-family:"Amiri","Scheherazade New","Noto Naskh Arabic",serif;
-      font-weight:800;
-      line-height:3;
-      padding-top:8px;
+      font-family: var(--font-ar);
+      font-weight:700;
+      line-height:2.2;
+      padding-top:4px;
       font-size:52px;
       white-space:nowrap;
       overflow:hidden;
@@ -75,20 +79,67 @@
 
     .fr{
       direction:ltr;text-align:center;
-      line-height:1.45;margin:0;font-weight:650;
+      line-height:1.45;margin:0;font-weight:600;
+      font-family: var(--font-fr);
       font-size:28px;
       white-space:normal;
       overflow:hidden;
       max-width: 92%;
     }
     :root[data-mobile="1"] #fr{
-      max-width: 50%;         /* ajuste: 75% = plus tôt / 82% = moins tôt */
-      line-height: 1.1;      /* optionnel: un peu plus compact */
+      max-width: 50%;         
+      line-height: 1.2;      
+    }
+
+    /* =========================
+       SÉPARATEUR / ENJOLIVEUR
+       ========================= */
+    .separator-box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+      margin: -6px 0;
+      opacity: 0.85;
+      font-size: 24px;
+      user-select: none;
+    }
+    .separator-box span {
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+
+    /* =========================
+       CALLIGRAPHIE FOOTER
+       ========================= */
+    .cal-footer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-top: 4px;
+      padding-bottom: 8px;
+      z-index: 2;
+    }
+    .cal-surah {
+      font-family: 'Aref Ruqaa Ink', serif;
+      font-size: 38px;
+      line-height: 1;
+      direction: rtl;
+    }
+    .cal-reciter {
+      font-family: var(--font-fr);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      opacity: 0.75;
+      margin-top: -4px;
     }
 
     .error{color:#ffb4b4;font-size:12px;white-space:pre-wrap}
-    .footer{font-size:11px;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .dbg{font-size:11px;color:rgba(255,255,255,.6);white-space:pre-wrap}
+    .footer{font-size:11px;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; z-index:2;}
+    .dbg{font-size:11px;color:rgba(255,255,255,.6);white-space:pre-wrap; z-index:2;}
 
     tajweed{display:inline}
     .ayah-end{font-weight:900;padding-inline:6px;white-space:nowrap}
@@ -119,32 +170,31 @@
     .toggle input{ width:16px;height:16px; accent-color:#fff; }
 
     /* =========================
-       TEXT FX (Selectable)
+       TEXT FX (Selectable) - S'applique aussi aux séparateurs et à la calligraphie !
        ========================= */
 
-    #ar, #fr{
+    #ar, #fr, .separator-box span, .cal-surah {
       text-rendering: optimizeLegibility;
       -webkit-font-smoothing: antialiased;
       filter: drop-shadow(0 10px 28px rgba(0,0,0,.34));
       position:relative;
-      z-index:1; /* above particles */
+      z-index:1; 
     }
 
-    #fr[data-textfx]:not([data-textfx="clean"]){
+    [data-textfx]:not([data-textfx="clean"]){
       background-image: linear-gradient(180deg,var(--inkTop) 0%,var(--inkMid) 55%,var(--inkBot) 100%);
       -webkit-background-clip:text;
       background-clip:text;
       color:transparent;
     }
 
-    #ar[data-textfx]:not([data-textfx="clean"]),
-    #fr[data-textfx]:not([data-textfx="clean"]){
+    [data-textfx]:not([data-textfx="clean"]) {
       text-shadow:
         0 0 18px var(--fxA),
         0 0 46px var(--fxB);
     }
 
-    #ar[data-textfx="neon"], #fr[data-textfx="neon"]{
+    [data-textfx="neon"] {
       --fxA: rgba(125,211,255,.28);
       --fxB: rgba(70,150,255,.16);
       --inkTop: rgba(255,255,255,.98);
@@ -152,7 +202,7 @@
       --inkBot: rgba(198,235,255,.72);
     }
 
-    #ar[data-textfx="luxe"], #fr[data-textfx="luxe"]{
+    [data-textfx="luxe"] {
       --fxA: rgba(247,212,106,.26);
       --fxB: rgba(247,212,106,.12);
       --inkTop: rgba(255,244,210,.98);
@@ -160,15 +210,39 @@
       --inkBot: rgba(225,185,85,.72);
     }
 
-    #ar[data-textfx="aurora"], #fr[data-textfx="aurora"]{
+    [data-textfx="aurora"] {
       --fxA: rgba(150,255,220,.22);
       --fxB: rgba(120,200,255,.14);
       --inkTop: rgba(235,255,250,.98);
       --inkMid: rgba(200,255,236,.86);
       --inkBot: rgba(170,210,255,.72);
     }
+    
+    [data-textfx="ethereal"] {
+      --fxA: rgba(255,255,255,.45);
+      --fxB: rgba(200,220,255,.20);
+      --inkTop: rgba(255,255,255,1);
+      --inkMid: rgba(245,250,255,.95);
+      --inkBot: rgba(210,230,255,.80);
+    }
 
-    #ar[data-textfx="clean"], #fr[data-textfx="clean"]{
+    [data-textfx="royal"] {
+      --fxA: rgba(255,70,90,.32);
+      --fxB: rgba(255,215,0,.18);
+      --inkTop: rgba(255,245,215,1);
+      --inkMid: rgba(255,190,190,.92);
+      --inkBot: rgba(210,60,80,.82);
+    }
+
+    [data-textfx="cosmic"] {
+      --fxA: rgba(180,100,255,.35);
+      --fxB: rgba(100,200,255,.22);
+      --inkTop: rgba(255,255,255,1);
+      --inkMid: rgba(235,210,255,.94);
+      --inkBot: rgba(160,110,255,.78);
+    }
+
+    [data-textfx="clean"] {
       text-shadow:none;
     }
 
@@ -275,6 +349,16 @@
       text-shadow: 0 0 .18em rgba(110,255,214,.55), 0 0 .85em rgba(110,190,255,.16);
       filter: saturate(1.28) contrast(1.03);
     }
+    #ar[data-fx="ruby"][data-wbw="on"] .w.hl{
+      background-image: linear-gradient(90deg, #b81e3b 0%, #f76a82 22%, #ffb8c5 38%, #f76a82 55%, #d73a55 78%, #ffb8c5 100%);
+      text-shadow: 0 0 .18em rgba(247,106,130,.65), 0 0 .80em rgba(247,106,130,.22);
+      filter: saturate(1.18) contrast(1.05);
+    }
+    #ar[data-fx="cosmic"][data-wbw="on"] .w.hl{
+      background-image: linear-gradient(90deg, #7b2cff 0%, #c47dff 30%, #f3e6ff 45%, #c47dff 60%, #994aff 85%, #f3e6ff 100%);
+      text-shadow: 0 0 .18em rgba(180,125,255,.62), 0 0 .85em rgba(160,70,255,.18);
+      filter: saturate(1.22) contrast(1.02);
+    }
 
     #ar[data-wbw="on"] .w .p-layer{
       position:absolute;
@@ -307,19 +391,9 @@
       background: radial-gradient(circle at 45% 45%, var(--pB) 0 40%, var(--pC) 41% 62%, transparent 63% 100%);
       filter: blur(.35px);
     }
-    @keyframes fairyFloat{
-      0%{ opacity:0; transform: translate(-50%,-50%) translate(0, 6px) scale(.85); }
-      12%{ opacity:.85; }
-      55%{ opacity:.55; transform: translate(-50%,-50%) translate(calc(var(--dx) * 1px), -10px) scale(1.05); }
-      100%{ opacity:0; transform: translate(-50%,-50%) translate(calc(var(--dx2) * 1px), -22px) scale(.92); }
-    }
-    @keyframes fairyTwinkle{
-      0%,100%{ filter: brightness(1) blur(.10px); }
-      50%{ filter: brightness(1.25) blur(.00px); }
-    }
 
     /* =========================
-       MODERN UI CONTROLS (no bigger)
+       MODERN UI CONTROLS
        ========================= */
 
     :root{
@@ -489,58 +563,59 @@
     @media (max-width: 520px){
       select, button{ font-size: 13.5px; }
     }
+
     /* =========================
-   BRAND / LOGO (top bar)
-   ========================= */
-.brand{
+       BRAND / LOGO (top bar)
+       ========================= */
+    .brand{
+      right: 24px;
+      position: absolute;
+      bottom: 24px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:6px 10px;
+      border-radius:14px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 10px 22px rgba(0,0,0,.18);
+      z-index: 10;
+    }
 
-  right: 24px;
-    position: absolute;
-    bottom: 24px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:6px 10px;
-  border-radius:14px;
-  background: rgba(255,255,255,.05);
-  border: 1px solid rgba(255,255,255,.10);
-  box-shadow: 0 10px 22px rgba(0,0,0,.18);
-}
+    .brand img{
+      width: 35px;
+      height: 35px;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 22px rgba(0,0,0,.35));
+      user-select:none;
+      -webkit-user-drag:none;
+    }
 
-.brand img{
-  width: 35px;          /* 🔥 augmente ici si tu veux plus gros */
-  height: 35px;
-  object-fit: contain;
-  filter: drop-shadow(0 10px 22px rgba(0,0,0,.35));
-  user-select:none;
-  -webkit-user-drag:none;
-}
+    .brandText{
+      display:flex;
+      flex-direction:column;
+      line-height:1.05;
+      min-width: 110px;
+    }
 
-.brandText{
-  display:flex;
-  flex-direction:column;
-  line-height:1.05;
-  min-width: 110px;
-}
+    .brandTitle{
+      font-weight:600;
+      letter-spacing:.2px;
+      font-size: 14px;
+      color: rgba(255,255,255,.95);
+      white-space:nowrap;
+    }
 
-.brandTitle{
-  font-weight:600;
-  letter-spacing:.2px;
-  font-size: 14px;
-  color: rgba(255,255,255,.95);
-  white-space:nowrap;
-}
+    .brandSub{
+      font-size: 11px;
+      color: rgba(255,255,255,.65);
+      white-space:nowrap;
+    }
 
-.brandSub{
-  font-size: 11px;
-  color: rgba(255,255,255,.65);
-  white-space:nowrap;
-}
-
-@media (max-width: 720px){
-  .brandText{ display:none; } /* sur mobile: logo seul */
-  .brand img{ width: 46px; height: 46px; }
-}
+    @media (max-width: 720px){
+      .brandText{ display:none; }
+      .brand img{ width: 46px; height: 46px; }
+    }
 
   </style>
 </head>
@@ -557,13 +632,51 @@
       <select id="trKey"></select>
     </div>
 
-    <div class="pill" title="Effet esthétique pour le texte (AR + FR)">
+    <div class="pill" title="Police Premium pour le texte Arabe">
+      <label for="fontAr">Police AR</label>
+      <select id="fontAr">
+        <option value="'Amiri', serif" selected>Amiri (Classique)</option>
+        <option value="'Scheherazade New', serif">Scheherazade (Traditionnel)</option>
+        <option value="'Aref Ruqaa', serif">Aref Ruqaa (Calligraphie standard)</option>
+        <option value="'Aref Ruqaa Ink', serif">Aref Ruqaa Ink (Manuscrite)</option>
+        <option value="'Reem Kufi', sans-serif">Reem Kufi (Géométrique)</option>
+        <option value="'Cairo', sans-serif">Cairo (Moderne/Épuré)</option>
+      </select>
+    </div>
+
+    <div class="pill" title="Police Premium pour le texte Français">
+      <label for="fontFr">Police FR</label>
+      <select id="fontFr">
+        <option value="system-ui, sans-serif" selected>System (Clean)</option>
+        <option value="'Cinzel', serif">Cinzel (Élégant/Cinématographique)</option>
+        <option value="'Montserrat', sans-serif">Montserrat (Moderne/Minimaliste)</option>
+        <option value="'Playfair Display', serif">Playfair (Luxe/Classique)</option>
+        <option value="'Raleway', sans-serif">Raleway (Aéré/Sophistiqué)</option>
+      </select>
+    </div>
+
+    <div class="pill" title="Effet esthétique pour le texte (AR + FR + Enjoliveur + Calligraphie)">
       <label for="textFx">Style texte</label>
       <select id="textFx">
         <option value="clean">Clean</option>
         <option value="neon">Neon léger</option>
-        <option value="luxe" selected>Luxe</option>
-        <option value="aurora">Aurora</option>
+        <option value="luxe" selected>Luxe (Or)</option>
+        <option value="aurora">Aurora (Vert/Bleu)</option>
+        <option value="ethereal">Ethereal (Argent/Blanc)</option>
+        <option value="royal">Royal (Rubis/Or)</option>
+        <option value="cosmic">Cosmic (Violet/Nuit)</option>
+      </select>
+    </div>
+
+    <div class="pill" title="Séparateur entre Arabe et Français">
+      <label for="separatorSel">Séparateur</label>
+      <select id="separatorSel">
+        <option value="">Aucun</option>
+        <option value="✧ ─── ۞ ─── ✧" selected>Étoile classique</option>
+        <option value="꧁ ❁ ꧂">Arabesque florale</option>
+        <option value="◈ ━━━━ ◈">Diamant minimal</option>
+        <option value="༅ ـــــ ❖ ـــــ ༅">Calligraphique</option>
+        <option value="⋆ ✦ ⋆">Éclat</option>
       </select>
     </div>
 
@@ -572,7 +685,6 @@
       <label for="particlesOn">Particules</label>
     </div>
 
-    <!-- ✅ NEW: MODE MOBILE -->
     <div class="toggle" title="Force la largeur max de la ligne arabe comme sur mobile (wrap plus tôt)">
       <input id="mobileMode" type="checkbox" />
       <label for="mobileMode">Mode mobile</label>
@@ -584,11 +696,13 @@
     </div>
 
     <div class="pill" id="fxPill" title="Effet sur le mot actif">
-      <label for="wbwFx">Effet</label>
+      <label for="wbwFx">Effet Mot</label>
       <select id="wbwFx">
         <option value="gold">Or</option>
         <option value="blue">Bleu</option>
         <option value="aurora">Aurora</option>
+        <option value="ruby">Rubis</option>
+        <option value="cosmic">Cosmic</option>
         <option value="clean">Clean</option>
       </select>
     </div>
@@ -598,15 +712,13 @@
     <button id="next">▶︎</button>
     <button id="reload">↻</button>
 
-    <button id="download">⬇ Pré-télécharger sourate</button>
+    <button id="download">⬇ Pré-télécharger</button>
     <button id="clearCache">🗑 Vider cache</button>
 
     <div class="spacer"></div>
     <div class="status" id="status">Prêt</div>
- 
   </div>
   
-
   <div class="stage">
     <div class="meta" id="meta">—</div>
 
@@ -614,6 +726,10 @@
       <div class="box" id="boxAr">
         <div class="fx-particles on" id="particlesAr"></div>
         <p class="arabic" id="ar" data-wbw="on" data-fx="gold" data-textfx="luxe"></p>
+      </div>
+
+      <div class="separator-box" style="display:none;" id="sepBox">
+        <span id="sepText" data-textfx="luxe">✧ ─── ۞ ─── ✧</span>
       </div>
 
       <div class="box" id="boxFr">
@@ -625,15 +741,20 @@
       <div class="dbg" id="dbg" style="display:none;"></div>
     </div>
 
-    <div class="footer" id="footer"> Traduction : —</div>
-         <!-- ✅ Brand / Logo -->
-  <div class="brand" title="Quran Video Maker">
-    <img src="./logo.png" alt="Quran Video Maker logo" draggable="false">
-    <div class="brandText">
-      <div class="brandTitle">Quran Video Maker</div>
-      <div class="brandSub">Lecteur + OBS </div>
+    <div class="cal-footer" id="calFooter">
+      <div class="cal-surah" id="calSurah" data-textfx="luxe">سورة الفاتحة</div>
+      <div class="cal-reciter" id="calReciter" data-textfx="luxe">Abu Bakr al-Shatri</div>
     </div>
-  </div>
+
+    <div class="footer" id="footer"> Traduction : —</div>
+    
+    <div class="brand" title="Quran Video Maker">
+      <img src="./logo.png" alt="Quran Video Maker logo" draggable="false">
+      <div class="brandText">
+        <div class="brandTitle">Quran Video Maker</div>
+        <div class="brandSub">Lecteur + OBS </div>
+      </div>
+    </div>
 
   </div>
 
@@ -642,7 +763,7 @@
 </div>
 
 <script>
-  const APP_VERSION = "onefile-v24-mobilemode";
+  const APP_VERSION = "onefile-v31-calligraphy-separators";
 
   // Mp3Quran timings API
   const MP3Q_BASE = "https://mp3quran.net/api/v3";
@@ -688,6 +809,22 @@
   ];
   const SURAH_NAME = new Map(SURAH_META.map(x => [x.n, x.t]));
 
+  // 🌟 Noms des sourates en Arabe pour la calligraphie
+  const SURAH_ARABIC_NAMES = [
+    "", "الفاتحة", "البقرة", "آل عمران", "النساء", "المائدة", "الأنعام", "الأعراف", "الأنفال", "التوبة", 
+    "يونس", "هود", "يوسف", "الرعد", "إبراهيم", "الحجر", "النحل", "الإسراء", "الكهف", "مريم", 
+    "طه", "الأنبياء", "الحج", "المؤمنون", "النور", "الفرقان", "الشعراء", "النمل", "القصص", "العنكبوت", 
+    "الروم", "لقمان", "السجدة", "الأحزاب", "سبأ", "فاطر", "يس", "الصافات", "ص", "الزمر", 
+    "غافر", "فصلت", "الشورى", "الزخرف", "الدخان", "الجاثية", "الأحقاف", "محمد", "الفتح", "الحجرات", 
+    "ق", "الذاريات", "الطور", "النجم", "القمر", "الرحمن", "الواقعة", "الحديد", "المجادلة", "الحشر", 
+    "الممتحنة", "الصف", "الجمعة", "المنافقون", "التغابن", "الطلاق", "التحريم", "الملك", "القلم", "الحاقة", 
+    "المعارج", "نوح", "الجن", "المزمل", "المدثر", "القيامة", "الإنسان", "المرسلات", "النبأ", "النازعات", 
+    "عبس", "التكوير", "الانفطار", "المطففين", "الانشقاق", "البروج", "الطارق", "الأعلى", "الغاشية", "الفجر", 
+    "البلد", "الشمس", "الليل", "الضحى", "الشرح", "التين", "العلق", "القدر", "البينة", "الزلزلة", 
+    "العاديات", "القارعة", "التكاثر", "العصر", "الهمزة", "الفيل", "قريش", "الماعون", "الكوثر", "الكافرون", 
+    "النصر", "المسد", "الإخلاص", "الفلق", "الناس"
+  ];
+
   // ===== RECITATEURS =====
   const LOCAL_RECITERS = [
     { id: "custom_recitation", name: "Custom recitation (1 MP3 / Ayah)", type: "local", basePath: "./local_audio/custom_recitation" }
@@ -695,7 +832,7 @@
   let QUL_AYAH_RECITERS = [
     { id: "qul_shatri", name: "QUL — Abu Bakr al-Shatri (segments)", type: "qul_ayah", jsonPath: "./qul/shatri_ayah_segments.json" }
   ];
-  let MP3Q_READS = []; // {id,name,rewaya,folder_url,soar_count}
+  let MP3Q_READS = [];
 
   // ===== DOM =====
   const $surah = document.getElementById("surah");
@@ -722,12 +859,19 @@
   const $fxPill = document.getElementById("fxPill");
 
   const $textFx = document.getElementById("textFx");
+  const $fontAr = document.getElementById("fontAr");
+  const $fontFr = document.getElementById("fontFr");
   const $particlesOn = document.getElementById("particlesOn");
   const $particlesAr = document.getElementById("particlesAr");
   const $particlesFr = document.getElementById("particlesFr");
 
-  // ✅ NEW
   const $mobileMode = document.getElementById("mobileMode");
+  const $separatorSel = document.getElementById("separatorSel");
+  const $sepBox = document.getElementById("sepBox");
+  const $sepText = document.getElementById("sepText");
+
+  const $calSurah = document.getElementById("calSurah");
+  const $calReciter = document.getElementById("calReciter");
 
   // ===== State =====
   let surah = 1;
@@ -750,26 +894,18 @@
 
   let localBlobUrl = null;
 
-  // Mp3Q timing state (sourate complète)
-  let mp3qTiming = null; // [{ayah,start,end}]
+  // Mp3Q timing state
+  let mp3qTiming = null; 
   let mp3qAudioUrlTried = null;
 
   // Text FX state
   let textFx = $textFx.value || "luxe";
   let particlesEnabled = !!$particlesOn.checked;
 
-  // ✅ NEW: mobile mode state
   let mobileMode = !!$mobileMode.checked;
   document.documentElement.dataset.mobile = mobileMode ? "1" : "0";
-  const MOBILE_WRAP_MAX_PX = 800;     // largeur max de ligne
-  const MOBILE_WRAP_SCALE = 0.72;     // proportion
-  $mobileMode.addEventListener("change", () => {
-    mobileMode = !!$mobileMode.checked;
-    document.documentElement.dataset.mobile = mobileMode ? "1" : "0";
-    if(ayahs?.length){
-      recomputeLinesForAllAyahs();
-    }
-  });
+  const MOBILE_WRAP_MAX_PX = 800;     
+  const MOBILE_WRAP_SCALE = 0.72;     
 
   // ===== Helpers =====
   const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -826,7 +962,27 @@
     }
   }
 
-  // ===== Text FX + particles =====
+  // ===== Font Management & Separator =====
+  function applyFonts(){
+    document.documentElement.style.setProperty("--font-ar", $fontAr.value);
+    document.documentElement.style.setProperty("--font-fr", $fontFr.value);
+    
+    if(ayahs?.length){
+      recomputeLinesForAllAyahs();
+    }
+  }
+
+  function applySeparator() {
+    const val = $separatorSel.value;
+    if(!val) {
+      $sepBox.style.display = "none";
+    } else {
+      $sepBox.style.display = "flex";
+      $sepText.textContent = val;
+    }
+  }
+
+  // ===== Text FX + Calligraphy Update =====
   function seedParticles(containerEl, count){
     containerEl.innerHTML = "";
     const c = count ?? 18;
@@ -854,6 +1010,9 @@
   function applyTextFx(){
     $ar.dataset.textfx = textFx;
     $fr.dataset.textfx = textFx;
+    $sepText.dataset.textfx = textFx;
+    $calSurah.dataset.textfx = textFx;
+    $calReciter.dataset.textfx = textFx;
 
     if(particlesEnabled){
       $particlesAr.classList.add("on");
@@ -868,7 +1027,16 @@
     }
   }
 
-  // ✅ NEW: largeur de wrapping effective (mode mobile)
+  function updateCalligraphy() {
+    $calSurah.textContent = "سورة " + (SURAH_ARABIC_NAMES[surah] || "");
+    
+    // Cleanup the reciter name to make it look cleaner
+    let rName = reciterObj.name.replace(/QUL\s*—\s*/i, "").replace(/Mp3Quran\s*—\s*/i, "").trim();
+    rName = rName.split("(")[0].trim(); // Remove parenthetical details
+    
+    $calReciter.textContent = rName;
+  }
+
   function getEffectiveUsableWidth(){
     const boxWidth = getBoxWidth();
     let usableWidth = Math.max(0, boxWidth - 160);
@@ -957,7 +1125,7 @@
     return div.innerHTML.trim();
   }
 
-  // ===== Tokenisation (tajweed HTML -> tokens mots) =====
+  // ===== Tokenisation =====
   function tokensFromTajweedHtml(html){
     const root = document.createElement("div");
     root.innerHTML = html || "";
@@ -1012,16 +1180,13 @@
     return t === "۞";
   }
 
-  // ✅ NEW: ponctuation seule => si elle tombe au début de la ligne suivante, on la rattache à la ligne d’avant (si ça fit)
   function isPunctOnlyToken(tokenHtml){
     const t = plainTextFromHtml(tokenHtml).trim();
-    // ponctuation seule (FR + AR) + fermetures / guillemets
     return /^[،,؛;:!?؟.…]+$/.test(t) || /^[\)\]\}»”’]+$/.test(t);
   }
 
   function isArabicPauseBoundaryToken(tokenHtml){
     const t = plainTextFromHtml(tokenHtml).trim();
-    // Marques waqf/pause fréquentes + ponctuation forte
     return /[ۭ۪ۖۗۚۛۜۘۙ۟۠ۢ۫]/.test(t) || /[،؛.؟!…]/.test(t);
   }
 
@@ -1069,7 +1234,7 @@
     return effToTok;
   }
 
-  // ===== Découpe en lignes (✅ version "intelligente" ponctuation) =====
+  // ===== Découpe en lignes =====
   function computeLinesForTokensFast(tokens, boxWidthPx, arEl, opts={}){
     const cs = getComputedStyle(arEl);
     const slackPx = Number.isFinite(opts.slackPx) ? opts.slackPx : 32;
@@ -1109,7 +1274,6 @@
         continue;
       }
 
-      // 1) plus longue séquence qui rentre (binaire)
       let lo = start+1, hi = tokens.length, best = lo;
       while(lo <= hi){
         const mid = (lo + hi) >> 1;
@@ -1117,7 +1281,6 @@
         else hi = mid - 1;
       }
 
-      // 2) ✅ privilégier une coupure sur marque de pause/signe proche de la fin de ligne
       let bestPreferred = -1;
       const backMin = Math.max(start + 1, best - 12);
       for(let cand = best; cand >= backMin; cand--){
@@ -1128,7 +1291,6 @@
       }
       if(bestPreferred > 0) best = bestPreferred;
 
-      // 3) ✅ rattacher la ponctuation (",", "،", "…", ")", etc.) si elle tomberait au début de la ligne suivante
       while(best < tokens.length && isPunctOnlyToken(tokens[best]) && fits(start, best + 1)){
         best += 1;
       }
@@ -1145,7 +1307,7 @@
     return { lines, wordToLine };
   }
 
-  // ===== Alignement FR <-> AR (heuristiques + DP monotone) =====
+  // ===== Alignement FR <-> AR =====
   function normalizeArabicForAlign(s){
     return String(s || "")
       .normalize("NFKD")
@@ -1195,212 +1357,358 @@
     return { raw, tokens, words, wordBoundaryToChar };
   }
 
-  function buildPhraseBoundariesArabic(a){
-    const totalEff = a.totalEff || 0;
-    const boundaries = new Set([0, totalEff]);
-    for(let ti=0; ti<a.tokens.length; ti++){
-      const effAfter = a.countBefore?.[ti+1] ?? 0;
-      if(effAfter <= 0 || effAfter >= totalEff) continue;
-      if(isArabicPauseBoundaryToken(a.tokens[ti])) boundaries.add(effAfter);
-      if(isPunctOnlyToken(a.tokens[ti])) boundaries.add(effAfter);
-    }
-    for(let e=4;e<totalEff;e+=4) boundaries.add(e);
-    return Array.from(boundaries).sort((x,y)=>x-y);
+  const FR_CONNECTORS = new Set(["et", "mais", "or", "car", "donc", "puis", "ensuite", "ainsi"]);
+
+  const CUE_RULES = [
+    { ar: /^وليكتب(?:\s|$)/u, frStart: [/^et qu.?un scribe/u, /^qu.?un scribe/u], weight: 1.8 },
+    { ar: /^فليكتب(?:\s|$)/u, frStart: [/^qu.?il ecrive/u, /^qu.?il ecrive donc/u], weight: 1.6 },
+    { ar: /^(فان|فإن) كان(?:\s|$)/u, frStart: [/^si /u], weight: 1.6 },
+    { ar: /^فليملل وليه(?:\s|$)/u, frStart: [/^que son representant dicte/u], weight: 2.0 },
+    { ar: /^(فان|فإن) لم يكونا(?:\s|$)/u, frStart: [/^et a defaut/u, /^a defaut/u], weight: 1.9 },
+    { ar: /^تضل(?:\s|$)/u, frStart: [/^de sorte que si/u, /^si l.?une/u], weight: 1.5 },
+    { ar: /^ولا ياب الشهداء(?:\s|$)/u, frStart: [/^et que les temoins ne refusent pas/u, /^que les temoins ne refusent pas/u], weight: 2.0 },
+    { ar: /^ولا تساموا(?:\s|$)|^ولا تسأموا(?:\s|$)/u, frStart: [/^ne vous lassez pas/u], weight: 2.2 },
+    { ar: /^ذلكم(?:\s|$)/u, frStart: [/^c['']?est plus equitable/u, /^cela est plus equitable/u], weight: 2.0 },
+    { ar: /^(الا|إلا) ان تكون(?:\s|$)/u, frStart: [/^mais s.?il s.?agit/u, /^a moins qu.?il ne s.?agisse/u], weight: 2.1 },
+    { ar: /^واشهدوا(?:\s|$)/u, frStart: [/^mais prenez des temoins/u, /^prenez des temoins/u], weight: 2.2 },
+    { ar: /^(وان|وإن) تفعلوا(?:\s|$)/u, frStart: [/^si vous le faisiez/u, /^si vous le faites/u], weight: 1.8 },
+    { ar: /^واتقوا الله(?:\s|$)/u, frStart: [/^et craignez allah/u, /^craignez allah/u], weight: 2.1 },
+    { ar: /^ويعلمكم الله(?:\s|$)/u, frStart: [/^alors allah vous enseigne/u, /^allah vous enseigne/u], weight: 3.0 },
+    { ar: /^والله بكل شيء عليم(?:\s|$)/u, frStart: [/^et allah est omniscient/u, /^allah est omniscient/u], weight: 3.4 },
+  ];
+
+  function getFrStartSignature(frTok, wPos, maxWords = 6){
+    const out = [];
+    for(let i = wPos; i < Math.min(frTok.words.length, wPos + maxWords); i++) out.push(frTok.words[i].norm || "");
+    return out.join(" ").trim();
   }
 
-  function buildClauseBoundariesFrench(frTok){
+  function getFrBoundaryInfo(frTok, wPos){
     const m = frTok.words.length;
-    const boundaries = new Set([0, m]);
-    const frConnectors = new Set(["et","puis","ensuite","mais","or","car","donc","alors","si","lorsque","quand"]);
-    for(let i=1;i<m;i++){
-      const prevToken = frTok.words[i-1];
-      const nextToken = frTok.words[i];
-      const between = frTok.raw.slice(prevToken.end, nextToken.start);
-      if(/[.;:!?…]/.test(between) || /[,،]/.test(between)) boundaries.add(i);
-      if(frConnectors.has(nextToken.norm)) boundaries.add(i);
+    if(wPos <= 0 || wPos >= m){
+      return { strength: 3, startTag: "edge", startSig: getFrStartSignature(frTok, wPos) };
     }
-    return Array.from(boundaries).sort((x,y)=>x-y);
-  }
-
-  function boundaryStrengthArabic(a, effPos){
-    for(let ti=0; ti<a.tokens.length; ti++){
-      const after = a.countBefore?.[ti+1] ?? 0;
-      if(after !== effPos) continue;
-      if(isArabicPauseBoundaryToken(a.tokens[ti])) return 2;
-      if(isPunctOnlyToken(a.tokens[ti])) return 1;
-    }
-    return 0;
-  }
-
-  function boundaryStrengthFrench(frTok, wPos){
-    if(wPos <= 0 || wPos >= frTok.words.length) return 2;
-    const prev = frTok.words[wPos-1];
+    const prev = frTok.words[wPos - 1];
     const next = frTok.words[wPos];
     const between = frTok.raw.slice(prev.end, next.start);
-    if(/[.;:!?…]/.test(between)) return 2;
-    if(/[,،]/.test(between)) return 1;
+    const n0 = frTok.words[wPos]?.norm || "";
+    const n1 = frTok.words[wPos + 1]?.norm || "";
+    const n2 = frTok.words[wPos + 2]?.norm || "";
+    const sig3 = [n0, n1, n2].filter(Boolean).join(" ");
+    const startSig = getFrStartSignature(frTok, wPos);
+    let strength = 0;
+    if(/[.;:!?…]/.test(between)) strength = 2;
+    else if(/[,،]/.test(between)) strength = 1;
+    let startTag = "neutral";
+    if(n0 === "si" || n0 === "quand" || n0 === "lorsque") startTag = "conditional";
+    else if(FR_CONNECTORS.has(n0)) startTag = "connector";
+    else if(sig3.startsWith("dans ce cas")) startTag = "consequence";
+    else if(/^c['']?est$/.test(n0) || n0 === "cela") startTag = "demonstrative";
+    else if(sig3.startsWith("alors allah vous") || sig3.startsWith("allah vous enseigne")) startTag = "teach";
+    else if(sig3.startsWith("de sorte que")) startTag = "subclause";
+    return { strength, startTag, startSig };
+  }
+
+  function buildArabicLineMeta(a){
+    return (a.lines || []).map((ln, li) => {
+      const effS = a.countBefore?.[ln.start] ?? 0;
+      const effE = a.countBefore?.[ln.end] ?? effS;
+      const effLen = Math.max(1, effE - effS);
+      const endTok = a.tokens?.[Math.max(ln.start, ln.end - 1)] || "";
+      const endStrength = isArabicPauseBoundaryToken(endTok) ? 2 : isPunctOnlyToken(endTok) ? 1 : 0;
+      const linePlain = plainTextFromHtml((a.tokens || []).slice(ln.start, ln.end).join(" "));
+      const lineNorm = normalizeArabicForAlign(linePlain).replace(/\s+/g, " ").trim();
+      const allowConnector = /^(و|ف|ثم|بل|لكن)(?:\s|$)/u.test(lineNorm);
+      const allowConditional =
+        /^(اذا|إذا|ان|إن|فان|فإن|وان|وإن|لو|الا|إلا)(?:\s|$)/u.test(lineNorm) ||
+        /^(الا|إلا) ان(?:\s|$)/u.test(lineNorm);
+      const allowDemonstrative = /^ذلكم(?:\s|$)/u.test(lineNorm);
+      const allowTeach = /^ويعلمكم الله(?:\s|$)/u.test(lineNorm);
+      const cues = CUE_RULES.filter(rule => rule.ar.test(lineNorm));
+      return { li, effS, effE, effLen, endStrength, lineNorm, allowConnector, allowConditional, allowDemonstrative, allowTeach, cues };
+    });
+  }
+
+  function cumulativeTargetsFromArabic(lineMeta, totalEff, m){
+    const out = [];
+    let acc = 0;
+    for(const lm of lineMeta){ acc += (lm.effLen / Math.max(1, totalEff)) * m; out.push(acc); }
+    return out;
+  }
+
+  function startPenalty(lm, frBoundaryInfos, k){
+    if(k <= 0) return 0;
+    const info = frBoundaryInfos[k];
+    let p = 0;
+    if(info.strength === 0) p += 1.6;
+    else if(info.strength === 1) p += 0.28;
+    if(info.startTag === "connector" && !lm.allowConnector) p += 1.35;
+    if(info.startTag === "conditional" && !lm.allowConditional) p += 1.35;
+    if(info.startTag === "demonstrative" && !lm.allowDemonstrative) p += 1.55;
+    if(info.startTag === "teach" && !lm.allowTeach) p += 2.8;
+    if(info.startTag === "consequence" && !(lm.allowConditional || lm.allowConnector)) p += 1.45;
+    if(info.startTag === "subclause" && !lm.allowConditional) p += 1.1;
+    if(/^والله بكل شيء عليم(?:\s|$)/u.test(lm.lineNorm)){
+      if(/^alors allah vous enseigne/.test(info.startSig) || /^allah vous enseigne/.test(info.startSig)) p += 4.5;
+      if(!/^et allah est omniscient/.test(info.startSig) && !/^allah est omniscient/.test(info.startSig)) p += 2.8;
+    }
+    if(/^ويعلمكم الله(?:\s|$)/u.test(lm.lineNorm)){
+      if(/^et allah est omniscient/.test(info.startSig) || /^allah est omniscient/.test(info.startSig)) p += 3.5;
+    }
+    if(lm.cues.length){
+      let matched = false;
+      for(const cue of lm.cues){
+        if(cue.frStart.some(re => re.test(info.startSig))){ p -= cue.weight; matched = true; break; }
+      }
+      if(!matched) p += 1.1;
+    }
+    return p;
+  }
+
+  function overshootPenalty(frBoundaryInfos, k, j, idealEnd){
+    let bestAlt = -1, bestAltDist = Infinity, bestAltStrength = -1;
+    const lo = Math.max(k + 1, Math.floor(idealEnd) - 10);
+    const hi = Math.min(j - 1, Math.ceil(idealEnd) + 8);
+    for(let b = lo; b <= hi; b++){
+      const info = frBoundaryInfos[b];
+      if(!info || info.strength < 1) continue;
+      const d = Math.abs(b - idealEnd);
+      if(d < bestAltDist || (d === bestAltDist && info.strength > bestAltStrength)){
+        bestAlt = b; bestAltDist = d; bestAltStrength = info.strength;
+      }
+    }
+    if(bestAlt < 0 || bestAlt === j) return 0;
+    const chosen = frBoundaryInfos[j];
+    const curDist = Math.abs(j - idealEnd);
+    if(bestAltDist + 1 < curDist || bestAltStrength > (chosen?.strength ?? 0))
+      return 1.10 + 0.14 * Math.max(0, j - bestAlt - 1);
     return 0;
   }
 
-  function mapArabicBoundariesToFrench(a, frTok, B_ar, B_fr){
-    const totalEff = Math.max(1, a.totalEff || 1);
-    const m = Math.max(1, frTok.words.length);
-    const map = new Array(B_ar.length).fill(0);
-    map[0] = 0;
-    map[B_ar.length - 1] = B_fr.length - 1;
-
-    let prevJ = 0;
-    for(let i=1;i<B_ar.length-1;i++){
-      const e = B_ar[i];
-      const target = (e / totalEff) * m;
-      const arStrength = boundaryStrengthArabic(a, e);
-      let bestJ = prevJ + 1;
-      let bestScore = Number.POSITIVE_INFINITY;
-      for(let j=prevJ+1; j<B_fr.length-1; j++){
-        const w = B_fr[j];
-        const frStrength = boundaryStrengthFrench(frTok, w);
-        const dist = Math.abs(w - target) / Math.max(1, m);
-        let score = dist;
-        if(arStrength >= 2 && frStrength < 2) score += 0.45;
-        if(arStrength >= 1 && frStrength === 0) score += 0.18;
-        if(score < bestScore){
-          bestScore = score;
-          bestJ = j;
-        }
-      }
-      map[i] = bestJ;
-      prevJ = bestJ;
+  function endPenalty(lm, frBoundaryInfos, j, idealEnd, expectedWords, k){
+    const info = frBoundaryInfos[j];
+    let p = 0;
+    if(j < frBoundaryInfos.length - 1){
+      if(lm.endStrength >= 2 && info.strength < 2) p += 1.35;
+      else if(lm.endStrength >= 1 && info.strength === 0) p += 0.55;
     }
-    return map;
+    const d = Math.abs(j - idealEnd) / Math.max(2, expectedWords);
+    p += 0.35 * d + 1.15 * d * d;
+    p += overshootPenalty(frBoundaryInfos, k, j, idealEnd);
+    return p;
   }
 
-  function buildFrenchAlignmentForAyah(a){
-    const frText = String(a.frText || "");
-    const totalEff = a.totalEff || 0;
-    const fallback = { frTok: tokenizeFrenchAlignment(frText), frWordBoundaryAtEff: new Array(totalEff + 1).fill(0) };
-    if(!frText.trim() || totalEff <= 0){
-      if(totalEff > 0) fallback.frWordBoundaryAtEff[totalEff] = fallback.frTok.words.length;
-      return fallback;
-    }
+  function segmentLengthPenalty(segLen, expectedWords){
+    const exp = Math.max(1, expectedWords);
+    const d = Math.abs(segLen - exp) / exp;
+    let p = 1.90 * d + 1.40 * d * d;
+    if(segLen <= 1 && exp > 2.2) p += 1.10;
+    if(segLen < exp * 0.45) p += 0.80;
+    if(segLen > exp * 1.80) p += 0.90;
+    return p;
+  }
 
+  function buildTransitionCostFn(groupMeta, frTok, totalEff){
+    const m = frTok.words.length;
+    const infos = Array.from({ length: m + 1 }, (_, i) => getFrBoundaryInfo(frTok, i));
+    const cumTargets = cumulativeTargetsFromArabic(groupMeta, totalEff, m);
+    const expectedWords = groupMeta.map(lm => (lm.effLen / Math.max(1, totalEff)) * m);
+    function cost(li, k, j){
+      const lm = groupMeta[li];
+      const expected = expectedWords[li];
+      const idealEnd = cumTargets[li];
+      const segLen = j - k;
+      let c = 0;
+      c += segmentLengthPenalty(segLen, expected);
+      c += startPenalty(lm, infos, k);
+      c += endPenalty(lm, infos, j, idealEnd, expected, k);
+      return c;
+    }
+    return { cost, infos, cumTargets, expectedWords };
+  }
+
+  function refineBoundariesLocally(bounds, groupMeta, transCost, m){
+    const nG = groupMeta.length;
+    if(bounds.length !== nG + 1) return bounds;
+    const out = bounds.slice();
+    for(let pass = 0; pass < 2; pass++){
+      for(let i = 1; i < nG; i++){
+        const leftFixed = out[i - 1];
+        const rightFixed = out[i + 1];
+        const cur = out[i];
+        const lo = Math.max(leftFixed + 1, cur - 4);
+        const hi = Math.min(rightFixed - 1, cur + 4);
+        let best = cur;
+        let bestScore = transCost.cost(i - 1, leftFixed, cur) + transCost.cost(i, cur, rightFixed);
+        for(let cand = lo; cand <= hi; cand++){
+          const sc = transCost.cost(i - 1, leftFixed, cand) + transCost.cost(i, cand, rightFixed);
+          if(sc < bestScore){ bestScore = sc; best = cand; }
+        }
+        out[i] = best;
+      }
+    }
+    out[0] = 0;
+    out[nG] = m;
+    return out;
+  }
+
+  function alignFrenchToArabicLines(a){
+    const frText = String(a.frText || "");
     const frTok = tokenizeFrenchAlignment(frText);
     const m = frTok.words.length;
-    const frWordBoundaryAtEff = new Array(totalEff + 1).fill(0);
-    if(m <= 1 || totalEff <= 3){
-      for(let e=0;e<=totalEff;e++) frWordBoundaryAtEff[e] = Math.round((e / Math.max(1, totalEff)) * m);
-      return { frTok, frWordBoundaryAtEff };
+    const n = a.lines?.length || 0;
+    const totalEff = a.totalEff || 0;
+    const emptyBoundary = new Array(totalEff + 1).fill(0);
+
+    if(!frText.trim() || !m || !n || totalEff <= 0){
+      if(totalEff > 0) emptyBoundary[totalEff] = m;
+      return { frTok, frLines: new Array(n).fill(frText.trim()),
+               frBounds: new Array(n + 1).fill(0).map((_, i) => i === n ? m : 0),
+               frWordBoundaryAtEff: emptyBoundary };
     }
 
-    const B_ar = buildPhraseBoundariesArabic(a);
-    const B_fr = buildClauseBoundariesFrench(frTok);
-    const nA = B_ar.length;
-    const mapBoundary = mapArabicBoundariesToFrench(a, frTok, B_ar, B_fr);
+    if(n === 1){
+      const one = new Array(totalEff + 1).fill(0);
+      for(let e = 0; e <= totalEff; e++) one[e] = Math.round((e / Math.max(1, totalEff)) * m);
+      return { frTok, frLines: [frText.trim()], frBounds: [0, m], frWordBoundaryAtEff: one };
+    }
 
-    for(let s=1;s<nA;s++){
-      const arS = B_ar[s-1], arE = B_ar[s];
-      const frS = B_fr[mapBoundary[s-1]] ?? 0;
-      const frE = B_fr[mapBoundary[s]] ?? m;
-      const den = Math.max(1, arE - arS);
-      for(let e=arS;e<=arE;e++){
-        const r = (e - arS) / den;
+    const lineMeta = buildArabicLineMeta(a);
+    const SHORT_LINE_THRESH = 2;
+
+    const groups = [];
+    for(let li = 0; li < n; li++){
+      const lm = lineMeta[li];
+      if(lm.effLen <= SHORT_LINE_THRESH && li > 0 && groups.length > 0){
+        const g = groups[groups.length - 1];
+        g.lineIdxs.push(li);
+        g.effE = lm.effE;
+        g.effLen += lm.effLen;
+        g.endStrength = Math.max(g.endStrength, lm.endStrength);
+        g.cues = [...g.cues, ...lm.cues];
+        g.allowConnector = g.allowConnector || lm.allowConnector;
+        g.allowConditional = g.allowConditional || lm.allowConditional;
+        g.allowDemonstrative = g.allowDemonstrative || lm.allowDemonstrative;
+        g.allowTeach = g.allowTeach || lm.allowTeach;
+      } else {
+        groups.push({
+          lineIdxs: [li],
+          effS: lm.effS, effE: lm.effE, effLen: lm.effLen,
+          endStrength: lm.endStrength, lineNorm: lm.lineNorm,
+          allowConnector: lm.allowConnector, allowConditional: lm.allowConditional,
+          allowDemonstrative: lm.allowDemonstrative, allowTeach: lm.allowTeach,
+          cues: [...lm.cues]
+        });
+      }
+    }
+    const nGroups = groups.length;
+
+    const transCost = buildTransitionCostFn(groups, frTok, totalEff);
+    const { cumTargets, expectedWords } = transCost;
+
+    const INF = 1e15;
+    const dp = Array.from({ length: nGroups + 1 }, () => new Array(m + 1).fill(INF));
+    const prev = Array.from({ length: nGroups + 1 }, () => new Array(m + 1).fill(-1));
+    dp[0][0] = 0;
+
+    for(let gi = 0; gi < nGroups; gi++){
+      const idealEnd = cumTargets[gi];
+      const exp = expectedWords[gi];
+      const window = Math.max(10, Math.ceil(exp * 2.4), Math.ceil(m * 0.16));
+      const minJ = Math.max(gi + 1, Math.floor(idealEnd - window));
+      const maxJ = Math.min(m - (nGroups - gi - 1), Math.ceil(idealEnd + window));
+
+      for(let j = minJ; j <= maxJ; j++){
+        const maxSegLen = Math.max(2, Math.ceil(exp * 2.6) + 6);
+        const minK = Math.max(gi, j - maxSegLen);
+        for(let k = minK; k < j; k++){
+          if(!Number.isFinite(dp[gi][k])) continue;
+          const c = dp[gi][k] + transCost.cost(gi, k, j);
+          if(c < dp[gi + 1][j]){ dp[gi + 1][j] = c; prev[gi + 1][j] = k; }
+        }
+      }
+    }
+
+    let groupBounds = null;
+    if(Number.isFinite(dp[nGroups][m])){
+      groupBounds = new Array(nGroups + 1).fill(0);
+      groupBounds[nGroups] = m;
+      let j = m;
+      for(let gi = nGroups; gi > 0; gi--){
+        const k = prev[gi][j];
+        if(k < 0){ groupBounds = null; break; }
+        groupBounds[gi - 1] = k;
+        j = k;
+      }
+    }
+    if(!groupBounds){
+      groupBounds = new Array(nGroups + 1).fill(0);
+      for(let gi = 1; gi < nGroups; gi++)
+        groupBounds[gi] = clamp(Math.round((gi / nGroups) * m), groupBounds[gi-1]+1, m-(nGroups-gi));
+      groupBounds[nGroups] = m;
+    }
+
+    const refinedGroup = refineBoundariesLocally(groupBounds, groups, transCost, m);
+
+    const bounds = new Array(n + 1).fill(0);
+    bounds[0] = 0;
+    bounds[n] = m;
+    for(let gi = 0; gi < nGroups; gi++){
+      const g = groups[gi];
+      const wS = refinedGroup[gi];
+      const wE = refinedGroup[gi + 1];
+      bounds[g.lineIdxs[0]] = wS;
+      if(g.lineIdxs.length === 1){
+        bounds[g.lineIdxs[0] + 1] = wE;
+      } else {
+        let cumEff = 0;
+        const totalGroupEff = g.effLen;
+        for(let k = 0; k < g.lineIdxs.length - 1; k++){
+          const li = g.lineIdxs[k];
+          cumEff += lineMeta[li].effLen;
+          const r = cumEff / totalGroupEff;
+          const raw = Math.round(wS + r * (wE - wS));
+          bounds[li + 1] = clamp(raw, wS + k + 1, wE - (g.lineIdxs.length - 1 - k));
+        }
+        bounds[g.lineIdxs[g.lineIdxs.length - 1] + 1] = wE;
+      }
+    }
+    for(let i = 1; i <= n; i++) bounds[i] = Math.max(bounds[i], bounds[i-1] + 1);
+    bounds[n] = m;
+
+    const frLines = [];
+    for(let li = 0; li < n; li++){
+      const ws = bounds[li];
+      const we = bounds[li + 1];
+      const c0 = frTok.wordBoundaryToChar[ws] ?? 0;
+      const c1 = frTok.wordBoundaryToChar[we] ?? frTok.raw.length;
+      frLines.push(frTok.raw.slice(c0, c1).trim());
+    }
+
+    for(let li = 1; li < n; li++){
+      if(lineMeta[li].effLen <= SHORT_LINE_THRESH && frLines[li-1]){
+        const ownWords = (frLines[li]||'').split(/\s+/).filter(Boolean).length;
+        if(ownWords === 0 || bounds[li] >= bounds[li+1]){
+          frLines[li] = frLines[li-1];
+        }
+      }
+    }
+
+    const frWordBoundaryAtEff = new Array(totalEff + 1).fill(0);
+    for(let li = 0; li < n; li++){
+      const lm = lineMeta[li];
+      const frS = bounds[li];
+      const frE = bounds[li + 1];
+      const den = Math.max(1, lm.effE - lm.effS);
+      for(let e = lm.effS; e <= lm.effE; e++){
+        const r = (e - lm.effS) / den;
         frWordBoundaryAtEff[e] = clamp(Math.round(frS + (frE - frS) * r), 0, m);
       }
     }
-
-    for(let e=1;e<=totalEff;e++) frWordBoundaryAtEff[e] = Math.max(frWordBoundaryAtEff[e], frWordBoundaryAtEff[e-1]);
+    for(let e = 1; e <= totalEff; e++) frWordBoundaryAtEff[e] = Math.max(frWordBoundaryAtEff[e], frWordBoundaryAtEff[e-1]);
     frWordBoundaryAtEff[totalEff] = m;
-    return { frTok, frWordBoundaryAtEff };
-  }
 
-  function computeFrLinesForAyah(a){
-    const out = new Array(a.lines?.length || 0).fill("");
-    const trOn = !!selectedTrKey;
-    if(!trOn || !a.frTok?.raw?.trim()) return out;
-    if((a.totalEff || 0) <= 3 || (a.lines?.length || 0) <= 1) return out.map(() => a.frTok.raw.trim());
-
-    const n = a.lines.length;
-    const m = a.frTok.words.length;
-    if(m <= 1) return out.map(() => a.frTok.raw.trim());
-
-    const arLineEff = a.lines.map(ln => {
-      const s = a.countBefore?.[ln.start] || 0;
-      const e = a.countBefore?.[ln.end] || s;
-      return Math.max(1, e - s);
-    });
-    const totalAr = Math.max(1, arLineEff.reduce((x,y)=>x+y, 0));
-
-    const frBoundaryStrength = (wPos) => {
-      if(wPos <= 0 || wPos >= m) return 2;
-      const prev = a.frTok.words[wPos-1];
-      const next = a.frTok.words[wPos];
-      const between = a.frTok.raw.slice(prev.end, next.start);
-      if(/[.;:!?…]/.test(between)) return 2;
-      if(/[,،]/.test(between)) return 1;
-      return 0;
-    };
-    const arLineEndStrength = (li) => {
-      const ln = a.lines[li];
-      const endTok = Math.max(ln.start, ln.end - 1);
-      const tok = a.tokens[endTok] || "";
-      if(isArabicPauseBoundaryToken(tok)) return 2;
-      if(isPunctOnlyToken(tok)) return 1;
-      return 0;
-    };
-
-    const INF = 1e15;
-    const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(INF));
-    const prev = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(-1));
-    dp[0][0] = 0;
-
-    for(let i=1;i<=n;i++){
-      const expected = (arLineEff[i-1] / totalAr) * m;
-      const minJ = i;
-      const maxJ = m - (n - i);
-      for(let j=minJ;j<=maxJ;j++){
-        const minK = i - 1;
-        for(let k=minK;k<j;k++){
-          if(!Number.isFinite(dp[i-1][k])) continue;
-          const seg = j - k;
-          let cost = dp[i-1][k];
-
-          cost += Math.abs(seg - expected) / Math.max(1, expected);
-          if(seg <= 1 && expected > 2) cost += 0.75;
-
-          const arS = arLineEndStrength(i-1);
-          const frS = frBoundaryStrength(j);
-          if(arS === 2 && frS < 2) cost += 0.5;
-          if(arS >= 1 && frS === 0) cost += 0.2;
-
-          if(cost < dp[i][j]){
-            dp[i][j] = cost;
-            prev[i][j] = k;
-          }
-        }
-      }
-    }
-
-    const bounds = new Array(n + 1).fill(0);
-    bounds[n] = m;
-    if(Number.isFinite(dp[n][m])){
-      let i = n, j = m;
-      while(i > 0){
-        bounds[i-1] = prev[i][j];
-        j = prev[i][j];
-        i--;
-      }
-    } else {
-      bounds[0] = 0;
-      for(let i=1;i<n;i++) bounds[i] = clamp(Math.round((i / n) * m), bounds[i-1] + 1, m - (n - i));
-    }
-
-    for(let li=0; li<n; li++){
-      const ws = clamp(bounds[li], 0, m);
-      const we = (li === n-1) ? m : clamp(Math.max(ws + 1, bounds[li+1]), 0, m);
-      const c0 = a.frTok.wordBoundaryToChar[ws] ?? 0;
-      const c1 = a.frTok.wordBoundaryToChar[we] ?? a.frTok.raw.length;
-      out[li] = a.frTok.raw.slice(c0, c1).trim() || a.frTok.raw.trim();
-    }
-    return out;
+    return { frTok, frLines, frBounds: bounds, frWordBoundaryAtEff };
   }
 
   // ===== Quran.com tajweed fetch =====
@@ -1451,7 +1759,7 @@
     return out;
   }
 
-  // ===== Service Worker helpers (sw.js inchangé) =====
+  // ===== Service Worker helpers =====
   async function registerSW(){
     if (!("serviceWorker" in navigator)) {
       showDbg("Service Worker non supporté: cache local désactivé.");
@@ -1611,9 +1919,7 @@
         ? Object.keys(json).slice(0, 30).join(", ")
         : "(racine = array)";
       throw new Error(
-        "QUL JSON: format non reconnu / aucune entrée exploitable.\n" +
-        "Attendu: { 's:a': {...} } OU { 's': { 'a': {...} } } OU [ {verse_key:'s:a', ...} ]\n" +
-        "Clés racine détectées: " + rootKeys
+        "QUL JSON: format non reconnu.\n"
       );
     }
 
@@ -1637,6 +1943,14 @@
       $ar.style.setProperty("--pA", "rgba(150, 255, 220, .82)");
       $ar.style.setProperty("--pB", "rgba(120, 200, 255, .32)");
       $ar.style.setProperty("--pC", "rgba(255, 255, 255, .14)");
+    } else if(fx === "ruby"){
+      $ar.style.setProperty("--pA", "rgba(255, 140, 160, .85)");
+      $ar.style.setProperty("--pB", "rgba(255, 90, 110, .35)");
+      $ar.style.setProperty("--pC", "rgba(255, 210, 220, .18)");
+    } else if(fx === "cosmic"){
+      $ar.style.setProperty("--pA", "rgba(220, 140, 255, .85)");
+      $ar.style.setProperty("--pB", "rgba(160, 90, 255, .35)");
+      $ar.style.setProperty("--pC", "rgba(250, 220, 255, .16)");
     } else {
       $ar.style.setProperty("--pA", "rgba(255,255,255,.78)");
       $ar.style.setProperty("--pB", "rgba(255,255,255,.30)");
@@ -1818,6 +2132,7 @@
   function render(){
     applyTextFx();
     applyWbwEffect();
+    applySeparator();
 
     if(reciterObj.type === "qul_ayah" || reciterObj.type === "mp3q_timing" || reciterObj.type === "local"){
       currentLineIdx = 0;
@@ -1829,7 +2144,6 @@
     if($ayah.value !== String(idx)) $ayah.value = String(idx);
   }
 
-  // ===== segment -> word index (QUL) =====
   function findWordIndexFromSegments(segments, ms){
     if(!segments || !segments.length) return 0;
     let lo = 0, hi = segments.length - 1;
@@ -1847,7 +2161,6 @@
     if(rafId){ cancelAnimationFrame(rafId); rafId = null; }
   }
 
-  // ===== QUL Sync Loop =====
   function startQulSyncLoop(){
     stopSyncLoop();
     const tick = () => {
@@ -1876,7 +2189,6 @@
     rafId = requestAnimationFrame(tick);
   }
 
-  // ===== Mp3Quran timings (sourate) =====
   function normalizeMp3qTiming(json){
     if(!Array.isArray(json)) return [];
     return json
@@ -1991,7 +2303,6 @@
     rafId = requestAnimationFrame(tick);
   }
 
-  // ===== Local Sync Loop (approx: ratio currentTime/duration) =====
   function startLocalSyncLoop(){
     stopSyncLoop();
     const tick = () => {
@@ -2226,7 +2537,6 @@
     }
   }
 
-  // ===== Phonétique (arabe -> latin) simple pour mp3q =====
   function arabicToPhonetic(input){
     if(!input) return "";
     let s = String(input);
@@ -2261,7 +2571,25 @@
     return orig;
   }
 
-  // ===== Fill reciters (QUL + Mp3Quran + Local) =====
+  function buildMp3qReciterObj(r){
+    return {
+      type: "mp3q_timing",
+      id: `mp3q_${r.id}`,
+      readId: r.id,
+      name: `Mp3Quran — ${r.name}${r.rewaya ? (" — " + r.rewaya) : ""}`,
+      folderUrl: r.folder_url
+    };
+  }
+
+  function pickDefaultReciterChoice(){
+    const matchQul = QUL_AYAH_RECITERS.find(r => /hani/i.test(r.id) || /hani/i.test(r.name));
+    if(matchQul) return { value: `qul_ayah:${matchQul.id}`, obj: matchQul };
+    const matchMp3q = MP3Q_READS.find(r => /hani/i.test(String(r.name || "")) || /hani/i.test(String(r.rewaya || "")));
+    if(matchMp3q) return { value: `mp3q_timing:${matchMp3q.id}`, obj: buildMp3qReciterObj(matchMp3q) };
+    const firstQul = QUL_AYAH_RECITERS[0];
+    return { value: `qul_ayah:${firstQul.id}`, obj: firstQul };
+  }
+
   function fillReciters(){
     $rec.innerHTML = "";
 
@@ -2305,12 +2633,11 @@
     $rec.appendChild(ogMp);
     $rec.appendChild(ogL);
 
-    const firstQul = QUL_AYAH_RECITERS[0];
-    $rec.value = `qul_ayah:${firstQul.id}`;
-    reciterObj = firstQul;
+    const choice = pickDefaultReciterChoice();
+    $rec.value = choice.value;
+    reciterObj = choice.obj;
   }
 
-  // ===== UI RULE: disable WBW when mp3q selected =====
   function setWbwAvailability(){
     const isMp3q = (reciterObj?.type === "mp3q_timing");
     const isLocal = (reciterObj?.type === "local");
@@ -2331,7 +2658,7 @@
   }
 
   // =========================
-  // AUTO PRELOAD (<= 50 urls)
+  // AUTO PRELOAD
   // =========================
   const AUTO_PRELOAD_ENABLED = true;
   const AUTO_PRELOAD_MAX_URLS = 50;
@@ -2398,7 +2725,6 @@
     }
   }
 
-  // ✅ recompute lines (utilisé par resize + mode mobile)
   function recomputeLinesForAllAyahs(){
     if(!(reciterObj.type === "qul_ayah" || reciterObj.type === "mp3q_timing" || reciterObj.type === "local")) return;
     if(!ayahs?.length) return;
@@ -2411,7 +2737,11 @@
       const { lines, wordToLine } = computeLinesForTokensFast(a.tokens, usableWidth, $ar, { slackPx, extraPreferredBreaks: a.pauseBreaks });
       a.lines = lines;
       a.wordToLine = wordToLine;
-      a.frLines = computeFrLinesForAyah(a);
+      const al2 = alignFrenchToArabicLines(a);
+      a.frTok = al2.frTok;
+      a.frWordBoundaryAtEff = al2.frWordBoundaryAtEff;
+      a.frLines = al2.frLines;
+      a.frBounds = al2.frBounds;
     }
     renderedLineKey = "";
     renderQulLine(clamp(currentLineIdx, 0, (ayahs[idx]?.lines?.length||1)-1), currentWordIdx >= 0 ? currentWordIdx : 0);
@@ -2431,6 +2761,7 @@
     revokeLocalBlob();
     $audio.removeAttribute("src");
 
+    updateCalligraphy();
     setWbwAvailability();
 
     const arabAyahs = await fetchArabicTajweedSurahFromQuranCom(surah);
@@ -2465,7 +2796,8 @@
           frText,
           frTok: null,
           frWordBoundaryAtEff: null,
-          frLines: []
+          frLines: [],
+          frBounds: null
         };
       });
 
@@ -2488,7 +2820,8 @@
           frText,
           frTok: null,
           frWordBoundaryAtEff: null,
-          frLines: []
+          frLines: [],
+          frBounds: null
         };
       });
 
@@ -2517,16 +2850,18 @@
           frText,
           frTok: null,
           frWordBoundaryAtEff: null,
-          frLines: []
+          frLines: [],
+          frBounds: null
         };
       });
     }
 
     for(const a of ayahs){
-      const al = buildFrenchAlignmentForAyah(a);
+      const al = alignFrenchToArabicLines(a);
       a.frTok = al.frTok;
       a.frWordBoundaryAtEff = al.frWordBoundaryAtEff;
-      a.frLines = computeFrLinesForAyah(a);
+      a.frLines = al.frLines;
+      a.frBounds = al.frBounds;
     }
 
     idx = 0;
@@ -2791,16 +3126,11 @@
       const readId = Number(raw);
       const r = MP3Q_READS.find(x => x.id === readId);
       if(!r) { showErr("Mp3Quran: read introuvable."); return; }
-      reciterObj = {
-        type: "mp3q_timing",
-        id: `mp3q_${readId}`,
-        readId: readId,
-        name: `Mp3Quran — ${r.name}${r.rewaya ? (" — " + r.rewaya) : ""}`,
-        folderUrl: r.folder_url
-      };
+      reciterObj = buildMp3qReciterObj(r);
     }
 
     setWbwAvailability();
+    updateCalligraphy();
     await loadSurah().catch(e => { setStatus("Erreur"); showErr(String(e)); });
   });
 
@@ -2844,12 +3174,20 @@
     textFx = $textFx.value || "clean";
     applyTextFx();
   });
+  
+  $separatorSel.addEventListener("change", () => {
+    applySeparator();
+  });
+
   $particlesOn.addEventListener("change", () => {
     particlesEnabled = !!$particlesOn.checked;
     applyTextFx();
   });
 
-  // ✅ mode mobile toggle => recompute lines + rerender
+  // 🌟 Application des Polices Dynamiques
+  $fontAr.addEventListener("change", applyFonts);
+  $fontFr.addEventListener("change", applyFonts);
+
   $mobileMode.addEventListener("change", () => {
     mobileMode = !!$mobileMode.checked;
     document.documentElement.dataset.mobile = mobileMode ? "1" : "0";
@@ -2873,6 +3211,8 @@
     applyWbwEffect();
 
     applyTextFx();
+    applyFonts();
+    applySeparator();
 
     await loadTranslationsIndexSolid();
     updateFooter();
@@ -2890,6 +3230,7 @@
 
     fillReciters();
     setWbwAvailability();
+    updateCalligraphy();
 
     await loadSurah().catch(e => { setStatus("Erreur"); showErr(String(e)); });
   })();
