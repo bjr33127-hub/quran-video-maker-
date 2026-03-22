@@ -8,7 +8,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&family=Aref+Ruqaa+Ink:wght@400;700&family=Cairo:wght@400;700;900&family=Cinzel:wght@500;700&family=Montserrat:wght@500;700;800&family=Playfair+Display:ital,wght@0,600;0,800;1,600&family=Raleway:wght@500;700;800&family=Reem+Kufi:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&family=Aref+Ruqaa+Ink:wght@400;700&family=Cairo:wght@400;700;900&family=Cinzel:wght@500;700&family=Lateef:wght@400;700&family=Montserrat:wght@500;700;800&family=Playfair+Display:ital,wght@0,600;0,800;1,600&family=Raleway:wght@500;700;800&family=Reem+Kufi:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
 
   <style>
     :root{
@@ -19,6 +19,11 @@
       /* Variables de polices dynamiques */
       --font-ar: "Amiri", serif;
       --font-fr: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      --font-cal-surah: "Aref Ruqaa Ink", serif;
+      --font-cal-reciter: "Playfair Display", serif;
+      --cal-surah-size: 38px;
+      --cal-surah-weight: 700;
+      --cal-surah-spacing: .01em;
 
       /* base palette for text FX (changes via data-textfx) */
       --fxA: rgba(255,255,255,.18);
@@ -32,7 +37,97 @@
     html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
     .app{height:100vh;display:flex;flex-direction:column;gap:12px;padding:14px;overflow:hidden}
     
-    .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--panel);border-radius:var(--r);padding:10px 12px}
+    .bar{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      align-items:stretch;
+      background:var(--panel);
+      border-radius:var(--r);
+      padding:10px 12px;
+      position:relative;
+      overflow:visible;
+      z-index:20;
+    }
+    .bar-primary,
+    .bar-advanced{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+    }
+    .bar-primary{
+      justify-content:space-between;
+    }
+    .primary-selects,
+    .primary-actions,
+    .status-group{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+    }
+    .status-group{
+      margin-left:auto;
+    }
+    .player-group{
+      display:flex;
+      align-items:center;
+      gap:0;
+      padding:4px;
+      border-radius:16px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow: 0 10px 22px rgba(0,0,0,.18);
+    }
+    .player-group button{
+      border-radius:12px;
+      min-width:48px;
+      box-shadow:none;
+    }
+    .player-group button + button{
+      margin-left:4px;
+    }
+    .bar-advanced{
+      position:absolute;
+      top:calc(100% + 8px);
+      left:0;
+      right:0;
+      padding:12px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:18px;
+      background:rgba(18,24,38,.98);
+      box-shadow: 0 18px 44px rgba(0,0,0,.36);
+      backdrop-filter: blur(14px);
+      z-index:35;
+    }
+    .app[data-menu-open="0"] .bar-advanced{
+      display:none;
+    }
+    .menu-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap:12px;
+      width:100%;
+    }
+    .menu-section{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      padding:12px;
+      border-radius:16px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .menu-section h3{
+      width:100%;
+      margin:0 0 2px;
+      font-size:12px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.72);
+    }
     .pill{display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06)}
     label{font-size:12px;color:var(--muted)}
     select,button,input[type="checkbox"]{border:0;outline:none}
@@ -48,6 +143,16 @@
     .stage{flex:1;min-height:0;background:var(--panel2);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px;overflow:hidden;position:relative;}
     .meta{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; z-index:2;}
     .content{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow:hidden; z-index:2;}
+    .app[data-minimal-ui="1"] .meta,
+    .app[data-minimal-ui="1"] .dbg,
+    .app[data-minimal-ui="1"] .footer,
+    .app[data-minimal-ui="1"] .brand{
+      display:none !important;
+    }
+    .app[data-minimal-ui="1"] .content{
+      gap:4px;
+    }
+
 
     .box{
       flex:1;
@@ -121,20 +226,89 @@
       padding-bottom: 8px;
       z-index: 2;
     }
-    .cal-surah {
-      font-family: 'Aref Ruqaa Ink', serif;
-      font-size: 38px;
+    .cal-harakat{
+      font-family: 'Amiri', 'Scheherazade New', serif;
+      font-size: 14px;
       line-height: 1;
       direction: rtl;
+      text-align:center;
+      letter-spacing: .22em;
+      opacity: .78;
+      min-height: 16px;
     }
+    .cal-surah {
+      font-family: var(--font-cal-surah);
+      font-size: var(--cal-surah-size, 38px);
+      font-weight: var(--cal-surah-weight, 700);
+      letter-spacing: var(--cal-surah-spacing, .01em);
+      line-height: 1;
+      direction: rtl;
+      text-align:center;
+    }
+    .cal-surah::before,
+    .cal-surah::after {
+      display: inline-block;
+      font-size: .56em;
+      opacity: .76;
+      margin-inline: .45em;
+      vertical-align: middle;
+    }
+    .cal-surah::before { content: attr(data-ornament-left); }
+    .cal-surah::after { content: attr(data-ornament-right); }
     .cal-reciter {
-      font-family: var(--font-fr);
-      font-size: 13px;
-      font-weight: 500;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      opacity: 0.75;
-      margin-top: -4px;
+      font-family: var(--font-cal-reciter);
+      font-size: 25px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      direction: ltr;
+      unicode-bidi: isolate;
+      opacity: 0.96;
+      margin-top: 2px;
+      line-height: 1.25;
+      text-align: center;
+      text-transform: none;
+      filter: drop-shadow(0 8px 24px rgba(0,0,0,.26));
+    }
+    .cal-footer[data-calligraphy-style="thuluth-ornate"] .cal-surah {
+      font-size: 42px;
+      letter-spacing: .03em;
+      text-shadow: 0 0 18px rgba(247,212,106,.16), 0 10px 22px rgba(0,0,0,.28);
+    }
+    .cal-footer[data-calligraphy-style="thuluth-soft"] .cal-surah {
+      font-size: 40px;
+      letter-spacing: .02em;
+      text-shadow: 0 0 14px rgba(255,255,255,.12), 0 10px 22px rgba(0,0,0,.24);
+    }
+    .cal-footer[data-calligraphy-style="modern-noor"] .cal-surah {
+      font-size: 39px;
+      letter-spacing: .01em;
+      text-shadow: 0 0 24px rgba(125,211,255,.12), 0 10px 24px rgba(0,0,0,.22);
+    }
+    .cal-footer[data-calligraphy-style="ink-minimal"] .cal-surah {
+      font-size: 37px;
+      letter-spacing: 0;
+      text-shadow: none;
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,.18));
+    }
+    .cal-footer[data-calligraphy-style="diwani-gold"] .cal-surah {
+      font-size: 43px;
+      letter-spacing: .02em;
+      text-shadow: 0 0 22px rgba(247,212,106,.22), 0 12px 24px rgba(0,0,0,.26);
+    }
+    .cal-footer[data-calligraphy-style="mushaf-royal"] .cal-surah {
+      font-size: 41px;
+      letter-spacing: .025em;
+      text-shadow: 0 0 18px rgba(255,90,120,.16), 0 0 26px rgba(247,212,106,.14);
+    }
+    .cal-footer[data-calligraphy-style="emerald-scribe"] .cal-surah {
+      font-size: 40px;
+      letter-spacing: .015em;
+      text-shadow: 0 0 24px rgba(110,255,214,.18), 0 10px 22px rgba(0,0,0,.24);
+    }
+    .cal-footer[data-calligraphy-style="night-orbit"] .cal-surah {
+      font-size: 41px;
+      letter-spacing: .035em;
+      text-shadow: 0 0 20px rgba(180,125,255,.20), 0 0 28px rgba(100,200,255,.12);
     }
 
     .error{color:#ffb4b4;font-size:12px;white-space:pre-wrap}
@@ -173,7 +347,7 @@
        TEXT FX (Selectable) - S'applique aussi aux séparateurs et à la calligraphie !
        ========================= */
 
-    #ar, #fr, .separator-box span, .cal-surah {
+    #ar, #fr, .separator-box span, .cal-surah, .cal-reciter {
       text-rendering: optimizeLegibility;
       -webkit-font-smoothing: antialiased;
       filter: drop-shadow(0 10px 28px rgba(0,0,0,.34));
@@ -201,6 +375,20 @@
       --inkMid: rgba(230,248,255,.86);
       --inkBot: rgba(198,235,255,.72);
     }
+    [data-textfx="lightning"] {
+      --fxA: rgba(120,220,255,.44);
+      --fxB: rgba(70,140,255,.24);
+      --inkTop: rgba(255,255,255,1);
+      --inkMid: rgba(205,240,255,.96);
+      --inkBot: rgba(118,190,255,.84);
+    }
+    [data-textfx="reflect"] {
+      --fxA: rgba(225,245,255,.42);
+      --fxB: rgba(120,200,255,.18);
+      --inkTop: rgba(255,255,255,1);
+      --inkMid: rgba(220,246,255,.98);
+      --inkBot: rgba(168,210,235,.82);
+    }
 
     [data-textfx="luxe"] {
       --fxA: rgba(247,212,106,.26);
@@ -216,6 +404,13 @@
       --inkTop: rgba(235,255,250,.98);
       --inkMid: rgba(200,255,236,.86);
       --inkBot: rgba(170,210,255,.72);
+    }
+    [data-textfx="emerald"] {
+      --fxA: rgba(34, 255, 163, .40);
+      --fxB: rgba(16, 185, 129, .24);
+      --inkTop: rgba(245,255,250,1);
+      --inkMid: rgba(126,255,203,.95);
+      --inkBot: rgba(0,186,117,.78);
     }
     
     [data-textfx="ethereal"] {
@@ -274,11 +469,86 @@
       animation-delay: calc(var(--d) * 1ms);
       mix-blend-mode: screen;
     }
+    .fx-particles .p.orb{
+      width: calc(var(--s) * 1.8px);
+      height: calc(var(--s) * 1.8px);
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.95) 0 18%, rgba(190,255,235,.42) 35%, rgba(110,255,214,.12) 60%, transparent 76%);
+      filter: blur(.8px);
+      opacity:.15;
+    }
+    .fx-particles .p.halo{
+      width: calc(var(--s) * 2.8px);
+      height: calc(var(--s) * 2.8px);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,.95) 0 12%, rgba(225,250,255,.18) 24%, transparent 42%),
+        radial-gradient(circle at 50% 50%, transparent 0 38%, rgba(175,240,255,.28) 46%, transparent 62%),
+        radial-gradient(circle at 50% 50%, rgba(120,255,214,.08) 0 54%, transparent 76%);
+      filter: blur(1.2px);
+      opacity:.16;
+      box-shadow: 0 0 18px rgba(180,240,255,.18), 0 0 28px rgba(90,210,255,.10);
+      animation: haloFloat var(--t) ease-in-out infinite;
+    }
+    .fx-particles .p.mist{
+      width: calc(var(--s) * 3.5px);
+      height: calc(var(--s) * 2.2px);
+      background: radial-gradient(circle at 50% 50%, rgba(255,255,255,.26) 0 30%, rgba(160,255,220,.12) 44%, transparent 75%);
+      filter: blur(4px);
+      opacity:.13;
+    }
+    .fx-particles .p.smoke{
+      width: calc(var(--s) * 10px);
+      height: calc(var(--s) * 3.9px);
+      border-radius: 999px;
+      background:
+        radial-gradient(ellipse at 18% 55%, rgba(255,255,255,.16) 0 18%, rgba(210,255,240,.12) 24%, transparent 58%),
+        radial-gradient(ellipse at 42% 44%, rgba(255,255,255,.15) 0 22%, rgba(175,245,225,.11) 28%, transparent 60%),
+        radial-gradient(ellipse at 67% 58%, rgba(255,255,255,.13) 0 19%, rgba(150,220,205,.09) 26%, transparent 58%),
+        radial-gradient(ellipse at 84% 46%, rgba(255,255,255,.12) 0 16%, rgba(160,210,198,.08) 22%, transparent 56%);
+      filter: blur(12px);
+      opacity:.16;
+      animation: smokeFloat var(--t) linear infinite;
+      mix-blend-mode: screen;
+    }
+    .fx-particles .p.lightning{
+      width: calc(var(--s) * 1.2px);
+      height: calc(var(--s) * 9px);
+      border-radius: 999px;
+      background: linear-gradient(180deg, transparent 0%, rgba(135,220,255,.12) 12%, rgba(255,255,255,.98) 48%, rgba(120,190,255,.42) 76%, transparent 100%);
+      filter: blur(.35px);
+      opacity:.18;
+      box-shadow: 0 0 10px rgba(120,220,255,.22), 0 0 22px rgba(70,140,255,.14);
+      animation: lightningFloat var(--t) linear infinite;
+      mix-blend-mode: screen;
+    }
     @keyframes floaty{
       0%   { opacity:0; transform:translate(-50%,-50%) translate(0, 10px) scale(.8); }
       18%  { opacity:.55; }
       55%  { opacity:.30; transform:translate(-50%,-50%) translate(calc(var(--dx)*1px), -8px) scale(1.05); }
       100% { opacity:0; transform:translate(-50%,-50%) translate(calc(var(--dx2)*1px), -22px) scale(.92); }
+    }
+    @keyframes smokeFloat{
+      0%   { opacity:0; transform:translate(-50%,-50%) translate(calc(var(--dx)*-1.4px), 6px) scale(.82, .72); }
+      12%  { opacity:.14; }
+      48%  { opacity:.11; transform:translate(-50%,-50%) translate(calc(var(--dx)*1.4px), -2px) scale(1.08, .82); }
+      82%  { opacity:.08; transform:translate(-50%,-50%) translate(calc(var(--dx2)*1.9px), -8px) scale(1.26, .9); }
+      100% { opacity:0; transform:translate(-50%,-50%) translate(calc(var(--dx2)*2.3px), -12px) scale(1.38, .94); }
+    }
+    @keyframes haloFloat{
+      0%   { opacity:0; transform:translate(-50%,-50%) translate(0, 10px) scale(.72); }
+      18%  { opacity:.18; }
+      52%  { opacity:.14; transform:translate(-50%,-50%) translate(calc(var(--dx)*.9px), -6px) scale(1.05); }
+      82%  { opacity:.10; transform:translate(-50%,-50%) translate(calc(var(--dx2)*1.1px), -14px) scale(1.18); }
+      100% { opacity:0; transform:translate(-50%,-50%) translate(calc(var(--dx2)*1.2px), -20px) scale(1.26); }
+    }
+    @keyframes lightningFloat{
+      0%   { opacity:0; transform:translate(-50%,-50%) rotate(var(--rot)) translate(0, 12px) scale(.72, .88); }
+      12%  { opacity:.10; }
+      16%  { opacity:.26; }
+      19%  { opacity:.06; }
+      24%  { opacity:.22; }
+      50%  { opacity:.10; transform:translate(-50%,-50%) rotate(var(--rot)) translate(calc(var(--dx)*.8px), -4px) scale(.9, 1.08); }
+      78%  { opacity:.16; }
+      100% { opacity:0; transform:translate(-50%,-50%) rotate(var(--rot)) translate(calc(var(--dx2)*1.1px), -18px) scale(1.06, 1.22); }
     }
     @media (prefers-reduced-motion: reduce){
       .fx-particles .p{ animation:none; opacity:.25; }
@@ -294,6 +564,10 @@
     }
     .rtl-line{ direction: rtl; unicode-bidi: isolate; }
 
+    #ar[data-wbw="on"]{
+      filter:none;
+      text-shadow:none;
+    }
     #ar[data-wbw="on"] .w{
       display:inline-block;
       position:relative;
@@ -303,6 +577,10 @@
       transform: translateZ(0);
       will-change: transform, filter, text-shadow;
       transition: transform .22s ease, filter .30s ease, text-shadow .30s ease, opacity .30s ease;
+      color: rgba(255,255,255,.98);
+      text-shadow: none;
+      filter: none;
+      opacity: .96;
     }
     #measure .w{
       display:inline-block;
@@ -344,10 +622,25 @@
       text-shadow: 0 0 .18em rgba(125,211,255,.62), 0 0 .85em rgba(70,150,255,.18);
       filter: saturate(1.22) contrast(1.02);
     }
+    #ar[data-fx="lightning"][data-wbw="on"] .w.hl{
+      background-image: linear-gradient(90deg, #1f6fff 0%, #75d8ff 24%, #ffffff 48%, #8de0ff 63%, #4ea6ff 84%, #effbff 100%);
+      text-shadow: 0 0 .22em rgba(145,225,255,.76), 0 0 1em rgba(70,140,255,.24);
+      filter: saturate(1.28) contrast(1.08);
+    }
+    #ar[data-fx="reflect"][data-wbw="on"] .w.hl{
+      background-image: linear-gradient(90deg, rgba(170,205,230,.88) 0%, #eefbff 18%, #ffffff 36%, #bfe9ff 52%, #ffffff 64%, #d9f3ff 82%, rgba(145,188,214,.84) 100%);
+      text-shadow: 0 0 .22em rgba(230,248,255,.72), 0 0 1em rgba(150,210,255,.20);
+      filter: saturate(1.2) contrast(1.06);
+    }
     #ar[data-fx="aurora"][data-wbw="on"] .w.hl{
       background-image: linear-gradient(90deg, #45ffb2 0%, #74d7ff 28%, #eaffff 45%, #8dffcf 62%, #6aa8ff 82%, #eaffff 100%);
       text-shadow: 0 0 .18em rgba(110,255,214,.55), 0 0 .85em rgba(110,190,255,.16);
       filter: saturate(1.28) contrast(1.03);
+    }
+    #ar[data-fx="emerald"][data-wbw="on"] .w.hl{
+      background-image: linear-gradient(90deg, #046c4e 0%, #10b981 20%, #6fffd2 42%, #f2fff9 50%, #6fffd2 58%, #10b981 82%, #023b30 100%);
+      text-shadow: 0 0 .24em rgba(80,255,198,.72), 0 0 1.05em rgba(16,185,129,.26);
+      filter: saturate(1.34) contrast(1.08);
     }
     #ar[data-fx="ruby"][data-wbw="on"] .w.hl{
       background-image: linear-gradient(90deg, #b81e3b 0%, #f76a82 22%, #ffb8c5 38%, #f76a82 55%, #d73a55 78%, #ffb8c5 100%);
@@ -358,6 +651,17 @@
       background-image: linear-gradient(90deg, #7b2cff 0%, #c47dff 30%, #f3e6ff 45%, #c47dff 60%, #994aff 85%, #f3e6ff 100%);
       text-shadow: 0 0 .18em rgba(180,125,255,.62), 0 0 .85em rgba(160,70,255,.18);
       filter: saturate(1.22) contrast(1.02);
+    }
+
+
+    #ar[data-wbw="on"] .w:not(.hl) tajweed,
+    #ar[data-wbw="on"] .w:not(.hl) span,
+    #ar[data-wbw="on"] .w:not(.hl){
+      color: rgba(255,255,255,.98) !important;
+      -webkit-text-fill-color: rgba(255,255,255,.98);
+      background: none !important;
+      text-shadow: none !important;
+      filter: none !important;
     }
 
     #ar[data-wbw="on"] .w .p-layer{
@@ -621,102 +925,172 @@
 </head>
 
 <body>
-<div class="app">
+<div class="app" id="app" data-menu-open="0">
   <div class="bar">
-    <div class="pill"><label for="surah">Sourate</label><select id="surah"></select></div>
-    <div class="pill"><label for="ayah">Verset</label><select id="ayah"></select></div>
-    <div class="pill"><label for="reciter">Récitateur</label><select id="reciter"></select></div>
+    <div class="bar-primary">
+      <div class="primary-selects">
+        <div class="pill"><label for="surah">Sourate</label><select id="surah"></select></div>
+        <div class="pill"><label for="ayah">Verset</label><select id="ayah"></select></div>
+        <div class="pill"><label for="reciter">Récitateur</label><select id="reciter"></select></div>
 
-    <div class="pill" title="Traduction QuranEnc (ou aucune)">
-      <label for="trKey">Traduction</label>
-      <select id="trKey"></select>
+        <div class="pill" title="Traduction QuranEnc (ou aucune)">
+          <label for="trKey">Traduction</label>
+          <select id="trKey"></select>
+        </div>
+      </div>
+
+      <div class="primary-actions">
+        <div class="player-group" aria-label="Contrôles lecteur">
+          <button id="prev">◀︎</button>
+          <button id="play">⏵</button>
+          <button id="next">▶︎</button>
+          <button id="reload">↻</button>
+        </div>
+        <button id="toggleMenu" type="button" aria-expanded="false" aria-controls="advancedControls">⚙︎ Affichage avancé</button>
+      </div>
+
+      <div class="status-group">
+        <div class="status" id="status">Prêt</div>
+      </div>
     </div>
 
-    <div class="pill" title="Police Premium pour le texte Arabe">
-      <label for="fontAr">Police AR</label>
-      <select id="fontAr">
-        <option value="'Amiri', serif" selected>Amiri (Classique)</option>
-        <option value="'Scheherazade New', serif">Scheherazade (Traditionnel)</option>
-        <option value="'Aref Ruqaa', serif">Aref Ruqaa (Calligraphie standard)</option>
-        <option value="'Aref Ruqaa Ink', serif">Aref Ruqaa Ink (Manuscrite)</option>
-        <option value="'Reem Kufi', sans-serif">Reem Kufi (Géométrique)</option>
-        <option value="'Cairo', sans-serif">Cairo (Moderne/Épuré)</option>
-      </select>
+    <div class="bar-advanced" id="advancedControls">
+      <div class="menu-grid">
+        <section class="menu-section">
+          <h3>Calligraphie</h3>
+          <div class="pill" title="Police du nom de la sourate en bas">
+            <label for="fontCalSurah">Police sourate</label>
+            <select id="fontCalSurah">
+              <option value="aref-ink" selected>Aref Ruqaa Ink</option>
+              <option value="aref">Aref Ruqaa</option>
+              <option value="amiri">Amiri</option>
+              <option value="lateef">Lateef</option>
+              <option value="scheherazade">Scheherazade</option>
+              <option value="reem-kufi">Reem Kufi</option>
+              <option value="cairo">Cairo</option>
+            </select>
+          </div>
+
+          <div class="pill" title="Police du nom du récitateur en bas">
+            <label for="fontReciter">Police récitateur</label>
+            <select id="fontReciter">
+              <option value="'Playfair Display', serif" selected>Playfair</option>
+              <option value="'Cinzel', serif">Cinzel</option>
+              <option value="'Raleway', sans-serif">Raleway</option>
+              <option value="'Montserrat', sans-serif">Montserrat</option>
+              <option value="system-ui, sans-serif">System</option>
+            </select>
+          </div>
+
+          <div class="pill" title="Séparateur entre Arabe et Français">
+            <label for="separatorSel">Séparateur</label>
+            <select id="separatorSel">
+              <option value="">Aucun</option>
+              <option value="✧ ─── ۞ ─── ✧" selected>Étoile classique</option>
+              <option value="꧁ ❁ ꧂">Arabesque florale</option>
+              <option value="◈ ━━━━ ◈">Diamant minimal</option>
+              <option value="༅ ـــــ ❖ ـــــ ༅">Calligraphique</option>
+              <option value="⋆ ✦ ⋆">Éclat</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="menu-section">
+          <h3>Texte & effets</h3>
+          <div class="pill" title="Police Premium pour le texte Arabe">
+            <label for="fontAr">Police AR</label>
+            <select id="fontAr">
+              <option value="'Amiri', serif" selected>Amiri (Classique)</option>
+              <option value="'Scheherazade New', serif">Scheherazade (Traditionnel)</option>
+              <option value="'Aref Ruqaa', serif">Aref Ruqaa (Calligraphie standard)</option>
+              <option value="'Aref Ruqaa Ink', serif">Aref Ruqaa Ink (Manuscrite)</option>
+              <option value="'Reem Kufi', sans-serif">Reem Kufi (Géométrique)</option>
+              <option value="'Cairo', sans-serif">Cairo (Moderne/Épuré)</option>
+            </select>
+          </div>
+
+          <div class="pill" title="Police Premium pour le texte Français">
+            <label for="fontFr">Police FR</label>
+            <select id="fontFr">
+              <option value="system-ui, sans-serif" selected>System (Clean)</option>
+              <option value="'Cinzel', serif">Cinzel (Élégant/Cinématographique)</option>
+              <option value="'Montserrat', sans-serif">Montserrat (Moderne/Minimaliste)</option>
+              <option value="'Playfair Display', serif">Playfair (Luxe/Classique)</option>
+              <option value="'Raleway', sans-serif">Raleway (Aéré/Sophistiqué)</option>
+            </select>
+          </div>
+
+          <div class="pill" title="Effet esthétique pour le texte (AR + FR + Enjoliveur + Calligraphie)">
+            <label for="textFx">Style texte</label>
+            <select id="textFx">
+              <option value="clean">Clean</option>
+              <option value="neon">Neon léger</option>
+              <option value="lightning">Éclair céleste</option>
+              <option value="reflect">Reflet miroir</option>
+              <option value="luxe" selected>Luxe (Or)</option>
+              <option value="aurora">Aurora (Vert/Bleu)</option>
+              <option value="emerald">Émeraude intense</option>
+              <option value="ethereal">Ethereal (Argent/Blanc)</option>
+              <option value="royal">Royal (Rubis/Or)</option>
+              <option value="cosmic">Cosmic (Violet/Nuit)</option>
+            </select>
+          </div>
+
+          <div class="pill" id="fxPill" title="Effet sur le mot actif">
+            <label for="wbwFx">Effet Mot</label>
+            <select id="wbwFx">
+              <option value="gold">Or</option>
+              <option value="blue">Bleu</option>
+              <option value="lightning">Éclair céleste</option>
+              <option value="reflect">Reflet miroir</option>
+              <option value="aurora">Aurora</option>
+              <option value="emerald">Émeraude intense</option>
+              <option value="ruby">Rubis</option>
+              <option value="cosmic">Cosmic</option>
+              <option value="clean">Clean</option>
+            </select>
+          </div>
+
+          <div class="pill" title="Style des particules d'ambiance">
+            <label for="particleStyle">Style particules</label>
+            <select id="particleStyle">
+              <option value="spark" selected>Éclats actuels</option>
+              <option value="lightning">Éclair / plasma</option>
+              <option value="halo">Halo nacré</option>
+              <option value="orb">Perles lumineuses</option>
+              <option value="mist">Brume légère</option>
+              <option value="smoke">Nuage / fumé</option>
+            </select>
+          </div>
+
+          <div class="toggle" title="Mini particules esthétiques (léger)">
+            <input id="particlesOn" type="checkbox" checked />
+            <label for="particlesOn">Particules</label>
+          </div>
+
+          <div class="toggle" title="Activer / désactiver le suivi mot à mot (QUL uniquement)">
+            <input id="wbwOn" type="checkbox" checked />
+            <label for="wbwOn">Mot à mot</label>
+          </div>
+        </section>
+
+        <section class="menu-section">
+          <h3>Scène</h3>
+          <div class="toggle" title="Force la largeur max de la ligne arabe comme sur mobile (wrap plus tôt)">
+            <input id="mobileMode" type="checkbox" />
+            <label for="mobileMode">Mode mobile</label>
+          </div>
+
+          <div class="toggle" title="Masque les infos secondaires dans la scène (meta, debug, traduction source, filigrane)">
+            <input id="minimalUi" type="checkbox" />
+            <label for="minimalUi">Mode épuré</label>
+          </div>
+
+          <button id="download">⬇ Pré-télécharger</button>
+          <button id="clearCache">🗑 Vider cache</button>
+        </section>
+      </div>
     </div>
-
-    <div class="pill" title="Police Premium pour le texte Français">
-      <label for="fontFr">Police FR</label>
-      <select id="fontFr">
-        <option value="system-ui, sans-serif" selected>System (Clean)</option>
-        <option value="'Cinzel', serif">Cinzel (Élégant/Cinématographique)</option>
-        <option value="'Montserrat', sans-serif">Montserrat (Moderne/Minimaliste)</option>
-        <option value="'Playfair Display', serif">Playfair (Luxe/Classique)</option>
-        <option value="'Raleway', sans-serif">Raleway (Aéré/Sophistiqué)</option>
-      </select>
-    </div>
-
-    <div class="pill" title="Effet esthétique pour le texte (AR + FR + Enjoliveur + Calligraphie)">
-      <label for="textFx">Style texte</label>
-      <select id="textFx">
-        <option value="clean">Clean</option>
-        <option value="neon">Neon léger</option>
-        <option value="luxe" selected>Luxe (Or)</option>
-        <option value="aurora">Aurora (Vert/Bleu)</option>
-        <option value="ethereal">Ethereal (Argent/Blanc)</option>
-        <option value="royal">Royal (Rubis/Or)</option>
-        <option value="cosmic">Cosmic (Violet/Nuit)</option>
-      </select>
-    </div>
-
-    <div class="pill" title="Séparateur entre Arabe et Français">
-      <label for="separatorSel">Séparateur</label>
-      <select id="separatorSel">
-        <option value="">Aucun</option>
-        <option value="✧ ─── ۞ ─── ✧" selected>Étoile classique</option>
-        <option value="꧁ ❁ ꧂">Arabesque florale</option>
-        <option value="◈ ━━━━ ◈">Diamant minimal</option>
-        <option value="༅ ـــــ ❖ ـــــ ༅">Calligraphique</option>
-        <option value="⋆ ✦ ⋆">Éclat</option>
-      </select>
-    </div>
-
-    <div class="toggle" title="Mini particules esthétiques (léger)">
-      <input id="particlesOn" type="checkbox" checked />
-      <label for="particlesOn">Particules</label>
-    </div>
-
-    <div class="toggle" title="Force la largeur max de la ligne arabe comme sur mobile (wrap plus tôt)">
-      <input id="mobileMode" type="checkbox" />
-      <label for="mobileMode">Mode mobile</label>
-    </div>
-
-    <div class="toggle" title="Activer / désactiver le suivi mot à mot (QUL uniquement)">
-      <input id="wbwOn" type="checkbox" checked />
-      <label for="wbwOn">Mot à mot</label>
-    </div>
-
-    <div class="pill" id="fxPill" title="Effet sur le mot actif">
-      <label for="wbwFx">Effet Mot</label>
-      <select id="wbwFx">
-        <option value="gold">Or</option>
-        <option value="blue">Bleu</option>
-        <option value="aurora">Aurora</option>
-        <option value="ruby">Rubis</option>
-        <option value="cosmic">Cosmic</option>
-        <option value="clean">Clean</option>
-      </select>
-    </div>
-
-    <button id="prev">◀︎</button>
-    <button id="play">⏵</button>
-    <button id="next">▶︎</button>
-    <button id="reload">↻</button>
-
-    <button id="download">⬇ Pré-télécharger</button>
-    <button id="clearCache">🗑 Vider cache</button>
-
-    <div class="spacer"></div>
-    <div class="status" id="status">Prêt</div>
   </div>
   
   <div class="stage">
@@ -741,8 +1115,10 @@
       <div class="dbg" id="dbg" style="display:none;"></div>
     </div>
 
-    <div class="cal-footer" id="calFooter">
+    <div class="cal-footer" id="calFooter" data-calligraphy-style="thuluth-ornate">
+      <div class="cal-harakat" id="calHarakatTop" data-textfx="luxe"></div>
       <div class="cal-surah" id="calSurah" data-textfx="luxe">سورة الفاتحة</div>
+      <div class="cal-harakat" id="calHarakatBottom" data-textfx="luxe"></div>
       <div class="cal-reciter" id="calReciter" data-textfx="luxe">Abu Bakr al-Shatri</div>
     </div>
 
@@ -835,6 +1211,7 @@
   let MP3Q_READS = [];
 
   // ===== DOM =====
+  const $app = document.getElementById("app");
   const $surah = document.getElementById("surah");
   const $ayah  = document.getElementById("ayah");
   const $rec   = document.getElementById("reciter");
@@ -842,6 +1219,7 @@
   const $play  = document.getElementById("play");
   const $next  = document.getElementById("next");
   const $reload= document.getElementById("reload");
+  const $toggleMenu = document.getElementById("toggleMenu");
   const $download = document.getElementById("download");
   const $clearCache = document.getElementById("clearCache");
   const $trKey  = document.getElementById("trKey");
@@ -861,15 +1239,22 @@
   const $textFx = document.getElementById("textFx");
   const $fontAr = document.getElementById("fontAr");
   const $fontFr = document.getElementById("fontFr");
+  const $fontCalSurah = document.getElementById("fontCalSurah");
+  const $fontReciter = document.getElementById("fontReciter");
+  const $particleStyle = document.getElementById("particleStyle");
   const $particlesOn = document.getElementById("particlesOn");
   const $particlesAr = document.getElementById("particlesAr");
   const $particlesFr = document.getElementById("particlesFr");
 
   const $mobileMode = document.getElementById("mobileMode");
+  const $minimalUi = document.getElementById("minimalUi");
   const $separatorSel = document.getElementById("separatorSel");
   const $sepBox = document.getElementById("sepBox");
   const $sepText = document.getElementById("sepText");
 
+  const $calFooter = document.getElementById("calFooter");
+  const $calHarakatTop = document.getElementById("calHarakatTop");
+  const $calHarakatBottom = document.getElementById("calHarakatBottom");
   const $calSurah = document.getElementById("calSurah");
   const $calReciter = document.getElementById("calReciter");
 
@@ -900,12 +1285,36 @@
 
   // Text FX state
   let textFx = $textFx.value || "luxe";
+  let particleStyle = $particleStyle.value || "spark";
   let particlesEnabled = !!$particlesOn.checked;
 
   let mobileMode = !!$mobileMode.checked;
+  let minimalUiEnabled = !!$minimalUi.checked;
+  let menuOpen = false;
+  const DEFAULT_CALLIGRAPHY_STYLE = "thuluth-ornate";
   document.documentElement.dataset.mobile = mobileMode ? "1" : "0";
   const MOBILE_WRAP_MAX_PX = 800;     
   const MOBILE_WRAP_SCALE = 0.72;     
+
+  const RECITER_STYLE_PRESETS = {
+    "thuluth-ornate": { left: "۞", right: "۞", top: "ـَـۚـُـۛـِـ", bottom: "ـۖـٰـۗـۘـ" },
+    "thuluth-soft": { left: "❁", right: "❁", top: "ـَـُـِـ", bottom: "ـۚـۖـۗـ" },
+    "modern-noor": { left: "✦", right: "✦", top: "ـٰـۚـٰـ", bottom: "ـۘـۛـۘـ" },
+    "ink-minimal": { left: "—", right: "—", top: "ـَـ", bottom: "ـۗـ" },
+    "diwani-gold": { left: "۩", right: "۩", top: "ـَـۛـٰـۚـُـ", bottom: "ـۖـۘـۗـۙـ" },
+    "mushaf-royal": { left: "✤", right: "✤", top: "ـُـۚـِـۛـَـ", bottom: "ـۗـۖـٰـۘـ" },
+    "emerald-scribe": { left: "❋", right: "❋", top: "ـِـٰـُـ", bottom: "ـۙـۛـۚـ" },
+    "night-orbit": { left: "✺", right: "✺", top: "ـَـۘـُـۛـ", bottom: "ـۖـۗـٰـ" }
+  };
+  const SURAH_FONT_PRESETS = {
+    "aref-ink": { family: "'Aref Ruqaa Ink', serif", size: "40px", weight: "700", spacing: ".02em" },
+    "aref": { family: "'Aref Ruqaa', serif", size: "38px", weight: "700", spacing: ".01em" },
+    "amiri": { family: "'Amiri', serif", size: "36px", weight: "700", spacing: ".005em" },
+    "lateef": { family: "'Lateef', serif", size: "46px", weight: "700", spacing: ".03em" },
+    "scheherazade": { family: "'Scheherazade New', serif", size: "37px", weight: "700", spacing: ".015em" },
+    "reem-kufi": { family: "'Reem Kufi', sans-serif", size: "34px", weight: "700", spacing: ".06em" },
+    "cairo": { family: "'Cairo', sans-serif", size: "32px", weight: "900", spacing: ".04em" }
+  };
 
   // ===== Helpers =====
   const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -966,6 +1375,12 @@
   function applyFonts(){
     document.documentElement.style.setProperty("--font-ar", $fontAr.value);
     document.documentElement.style.setProperty("--font-fr", $fontFr.value);
+    const surahFont = SURAH_FONT_PRESETS[$fontCalSurah.value] || SURAH_FONT_PRESETS["aref-ink"];
+    document.documentElement.style.setProperty("--font-cal-surah", surahFont.family);
+    document.documentElement.style.setProperty("--cal-surah-size", surahFont.size);
+    document.documentElement.style.setProperty("--cal-surah-weight", surahFont.weight);
+    document.documentElement.style.setProperty("--cal-surah-spacing", surahFont.spacing);
+    document.documentElement.style.setProperty("--font-cal-reciter", $fontReciter.value);
     
     if(ayahs?.length){
       recomputeLinesForAllAyahs();
@@ -985,17 +1400,29 @@
   // ===== Text FX + Calligraphy Update =====
   function seedParticles(containerEl, count){
     containerEl.innerHTML = "";
-    const c = count ?? 18;
+    containerEl.dataset.style = particleStyle;
+    const profile = {
+      spark: { cls:"spark", count: count ?? 18, sMin:2.0, sRange:2.8, tMin:1400, tRange:2200 },
+      lightning: { cls:"lightning", count: Math.max(11, Math.round((count ?? 18) * 0.72)), sMin:2.6, sRange:4.2, tMin:1200, tRange:1800 },
+      halo:  { cls:"halo",  count: Math.max(9, Math.round((count ?? 18) * 0.62)), sMin:3.2, sRange:4.8, tMin:2600, tRange:2600 },
+      orb:   { cls:"orb",   count: Math.max(10, Math.round((count ?? 18) * 0.7)), sMin:3.0, sRange:4.6, tMin:2200, tRange:2600 },
+      mist:  { cls:"mist",  count: Math.max(8, Math.round((count ?? 18) * 0.58)), sMin:4.4, sRange:5.6, tMin:2600, tRange:3200 },
+      smoke: { cls:"smoke", count: Math.max(6, Math.round((count ?? 18) * 0.42)), sMin:7.0, sRange:9.6, tMin:4200, tRange:4200 }
+    }[particleStyle] || { cls:"spark", count: count ?? 18, sMin:2.0, sRange:2.8, tMin:1400, tRange:2200 };
+
+    const c = profile.count;
     for(let i=0;i<c;i++){
       const p = document.createElement("span");
-      p.className = "p";
+      p.className = `p ${profile.cls}`;
       const x = 8 + Math.random()*84;
       const y = 12 + Math.random()*78;
-      const s = 2.0 + Math.random()*2.8;
-      const t = 1400 + Math.random()*2200;
+      const s = profile.sMin + Math.random()*profile.sRange;
+      const t = profile.tMin + Math.random()*profile.tRange;
       const d = Math.random()*1200;
-      const dx = (Math.random()*14 - 7);
-      const dx2 = dx + (Math.random()*18 - 9);
+      const driftFactor = profile.cls === "smoke" ? 2.8 : 1;
+      const dx = (Math.random()*14 - 7) * driftFactor;
+      const dx2 = dx + ((Math.random()*18 - 9) * driftFactor);
+      const rot = profile.cls === "lightning" ? (-18 + Math.random()*36) : 0;
       p.style.setProperty("--x", x.toFixed(2));
       p.style.setProperty("--y", y.toFixed(2));
       p.style.setProperty("--s", s.toFixed(2));
@@ -1003,14 +1430,112 @@
       p.style.setProperty("--d", d.toFixed(0));
       p.style.setProperty("--dx", dx.toFixed(2));
       p.style.setProperty("--dx2", dx2.toFixed(2));
+      p.style.setProperty("--rot", rot.toFixed(2) + "deg");
       containerEl.appendChild(p);
     }
+  }
+
+  function slugTitleCase(slug){
+    const small = new Set(["al", "as", "ar", "ad", "an", "ash", "at", "bin", "ibn"]);
+    return String(slug || "").split("-").filter(Boolean).map((part, idx) => {
+      const lower = part.toLowerCase();
+      if(idx > 0 && small.has(lower)) return lower;
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    }).join(" ");
+  }
+
+  function extractReciterBaseSlug(reciter){
+    const raw = [reciter?.jsonPath, reciter?.name, reciter?.reciter_name, reciter?.id, reciter?.readId]
+      .filter(Boolean)
+      .map(String)
+      .join(" | ");
+
+    let slug = raw.toLowerCase()
+      .replace(/\.json/g, "")
+      .replace(/\.\//g, "-")
+      .replace(/[\_\/|]+/g, "-")
+      .replace(/q\s*u\s*l\s*[—-]?/g, "")
+      .replace(/mp3quran\s*[—-]?/g, "")
+      .replace(/ayah-recitation-/g, "")
+      .replace(/qul-ayah-/g, "")
+      .replace(/recitation-/g, "")
+      .replace(/[^a-z0-9-]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    const parts = slug.split("-").filter(Boolean);
+    const cutWords = new Set(["recitation", "murattal", "mujawwad", "hafs", "warsh", "segments", "read", "riwaya", "riwayah"]);
+    while(parts.length){
+      const last = parts[parts.length - 1];
+      if(/^\d+$/.test(last) || cutWords.has(last)){
+        parts.pop();
+        continue;
+      }
+      break;
+    }
+
+    const joined = parts.join("-");
+    const aliases = [
+      "abdul-basit-abdul-samad",
+      "abdur-rahman-as-sudais",
+      "abdul-rahman-al-sudais",
+      "abu-bakr-al-shatri",
+      "hani-ar-rifai",
+      "khalifa-al-tunaiji",
+      "maher-al-mu-aiqly",
+      "mahmoud-khalil-al-husary",
+      "mishari-rashid-al-afasy",
+      "mohamed-al-tablawi",
+      "muhammad-siddiq-al-minshawi",
+      "saad-al-ghamdi",
+      "saud-al-shuraim",
+      "yasser-al-dosari",
+      "abdullah-awad-al-juhany",
+      "abdullah-matroud",
+      "ahmed-neena",
+      "akram-al-alaqimy",
+      "ali-hajjaj-al-suesy",
+      "aziz-alili",
+      "khaalid-abdullah-al-qahtani",
+      "muhammad-ayyub-bin-muhammad-yusuf"
+    ];
+    for(const alias of aliases){
+      if(joined.includes(alias)) return alias;
+    }
+    return joined;
+  }
+
+  function getReciterDisplay(reciter){
+    const slug = extractReciterBaseSlug(reciter);
+    const latin = slugTitleCase(slug) || String(reciter?.name || "").replace(/^(QUL|Mp3Quran)\s*[—-]\s*/i, "").trim();
+    return { slug, latin };
+  }
+
+  function applyMinimalMode(){
+    $app.dataset.minimalUi = minimalUiEnabled ? "1" : "0";
+  }
+
+  function applyMenuState(){
+    $app.dataset.menuOpen = menuOpen ? "1" : "0";
+    $toggleMenu.setAttribute("aria-expanded", menuOpen ? "true" : "false");
+    $toggleMenu.textContent = menuOpen ? "▴ Réduire le menu" : "⚙︎ Affichage avancé";
+  }
+
+  function applyCalligraphyStyle(){
+    $calFooter.dataset.calligraphyStyle = DEFAULT_CALLIGRAPHY_STYLE;
+    const preset = RECITER_STYLE_PRESETS[DEFAULT_CALLIGRAPHY_STYLE] || RECITER_STYLE_PRESETS["thuluth-ornate"];
+    $calSurah.dataset.ornamentLeft = preset.left;
+    $calSurah.dataset.ornamentRight = preset.right;
+    $calHarakatTop.textContent = preset.top || "";
+    $calHarakatBottom.textContent = preset.bottom || "";
   }
 
   function applyTextFx(){
     $ar.dataset.textfx = textFx;
     $fr.dataset.textfx = textFx;
     $sepText.dataset.textfx = textFx;
+    $calHarakatTop.dataset.textfx = textFx;
+    $calHarakatBottom.dataset.textfx = textFx;
     $calSurah.dataset.textfx = textFx;
     $calReciter.dataset.textfx = textFx;
 
@@ -1029,12 +1554,10 @@
 
   function updateCalligraphy() {
     $calSurah.textContent = "سورة " + (SURAH_ARABIC_NAMES[surah] || "");
-    
-    // Cleanup the reciter name to make it look cleaner
-    let rName = reciterObj.name.replace(/QUL\s*—\s*/i, "").replace(/Mp3Quran\s*—\s*/i, "").trim();
-    rName = rName.split("(")[0].trim(); // Remove parenthetical details
-    
-    $calReciter.textContent = rName;
+    const reciterDisplay = getReciterDisplay(reciterObj);
+    $calReciter.textContent = reciterDisplay.latin;
+    $calReciter.title = reciterDisplay.latin;
+    $calReciter.lang = "fr";
   }
 
   function getEffectiveUsableWidth(){
@@ -1939,10 +2462,22 @@
       $ar.style.setProperty("--pA", "rgba(140, 220, 255, .85)");
       $ar.style.setProperty("--pB", "rgba(90, 160, 255, .35)");
       $ar.style.setProperty("--pC", "rgba(220, 250, 255, .16)");
+    } else if(fx === "lightning"){
+      $ar.style.setProperty("--pA", "rgba(150, 230, 255, .92)");
+      $ar.style.setProperty("--pB", "rgba(70, 140, 255, .42)");
+      $ar.style.setProperty("--pC", "rgba(235, 248, 255, .22)");
+    } else if(fx === "reflect"){
+      $ar.style.setProperty("--pA", "rgba(235, 248, 255, .90)");
+      $ar.style.setProperty("--pB", "rgba(165, 215, 245, .34)");
+      $ar.style.setProperty("--pC", "rgba(255, 255, 255, .18)");
     } else if(fx === "aurora"){
       $ar.style.setProperty("--pA", "rgba(150, 255, 220, .82)");
       $ar.style.setProperty("--pB", "rgba(120, 200, 255, .32)");
       $ar.style.setProperty("--pC", "rgba(255, 255, 255, .14)");
+    } else if(fx === "emerald"){
+      $ar.style.setProperty("--pA", "rgba(120, 255, 205, .94)");
+      $ar.style.setProperty("--pB", "rgba(16, 185, 129, .46)");
+      $ar.style.setProperty("--pC", "rgba(228, 255, 242, .22)");
     } else if(fx === "ruby"){
       $ar.style.setProperty("--pA", "rgba(255, 140, 160, .85)");
       $ar.style.setProperty("--pB", "rgba(255, 90, 110, .35)");
@@ -3140,6 +3675,10 @@
 
   $download.addEventListener("click", predownloadCurrentSurah);
   $clearCache.addEventListener("click", clearCache);
+  $toggleMenu.addEventListener("click", () => {
+    menuOpen = !menuOpen;
+    applyMenuState();
+  });
 
   $wbwOn.addEventListener("change", () => {
     if(reciterObj.type === "mp3q_timing"){
@@ -3183,10 +3722,21 @@
     particlesEnabled = !!$particlesOn.checked;
     applyTextFx();
   });
+  $particleStyle.addEventListener("change", () => {
+    particleStyle = $particleStyle.value || "spark";
+    applyTextFx();
+  });
+
+  $minimalUi.addEventListener("change", () => {
+    minimalUiEnabled = !!$minimalUi.checked;
+    applyMinimalMode();
+  });
 
   // 🌟 Application des Polices Dynamiques
   $fontAr.addEventListener("change", applyFonts);
   $fontFr.addEventListener("change", applyFonts);
+  $fontCalSurah.addEventListener("change", applyFonts);
+  $fontReciter.addEventListener("change", applyFonts);
 
   $mobileMode.addEventListener("change", () => {
     mobileMode = !!$mobileMode.checked;
@@ -3208,6 +3758,9 @@
 
     wbwEnabled = true;
     wbwEffect = $wbwFx.value || "gold";
+    applyMinimalMode();
+    applyMenuState();
+    applyCalligraphyStyle();
     applyWbwEffect();
 
     applyTextFx();
