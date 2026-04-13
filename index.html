@@ -552,7 +552,7 @@
       font-size:.44em;
       padding-inline:0;
       padding-block:0;
-      margin-inline-start:0;
+      margin-inline-start:.08em;
       line-height:1;
       vertical-align:-0.02em;
     }
@@ -829,6 +829,7 @@
       display:inline-flex;
       align-items:center;
       font-weight:900;
+      margin-inline-start:.16em;
       padding-inline:6px;
       padding-block:.16em;
       white-space:nowrap;
@@ -1468,6 +1469,7 @@
     #ar[data-wbw="on"] .w .ayah-end{
       display:inline-block;
       overflow:visible;
+      margin-inline-start:.14em;
       line-height:1.5;
       padding-block:.12em;
       vertical-align:-0.06em;
@@ -1476,6 +1478,12 @@
       filter:none !important;
       -webkit-text-fill-color: rgba(255,255,255,.98) !important;
       color: rgba(255,255,255,.98) !important;
+    }
+    :root[data-ios-webkit="1"] #ar[data-wbw="on"] .w.hl[data-ayah-tail="1"]{
+      margin-inline:0;
+      background-size:100% 100%;
+      background-position:50% 50%;
+      animation:none;
     }
     #measure .w{
       display:inline-block;
@@ -2786,6 +2794,15 @@
   const $electronOnlyEls = Array.from(document.querySelectorAll("[data-electron-only='1']"));
 
   const platformMode = window.qvmApp?.isElectron ? "electron" : "web";
+  const isIOSWebKit = (() => {
+    if(platformMode !== "web") return false;
+    const ua = String(navigator.userAgent || "");
+    const platform = String(navigator.platform || "");
+    const maxTouchPoints = Number(navigator.maxTouchPoints || 0);
+    const iosDevice = /iP(?:hone|ad|od)/i.test(ua) || (platform === "MacIntel" && maxTouchPoints > 1);
+    const webkitSafari = /WebKit/i.test(ua) && !/CriOS|FxiOS|EdgiOS/i.test(ua);
+    return iosDevice && webkitSafari;
+  })();
   const platformCapabilities = Object.freeze({
     isElectron: platformMode === "electron",
     canUseObs: platformMode === "electron",
@@ -3625,8 +3642,11 @@
 
   function applyPlatformMode(){
     document.documentElement.dataset.platform = platformMode;
+    document.documentElement.dataset.iosWebkit = isIOSWebKit ? "1" : "0";
     document.body.dataset.platform = platformMode;
+    document.body.dataset.iosWebkit = isIOSWebKit ? "1" : "0";
     $app.dataset.platform = platformMode;
+    $app.dataset.iosWebkit = isIOSWebKit ? "1" : "0";
 
     for(const el of $electronOnlyEls){
       const shouldHide = !platformCapabilities.isElectron;
@@ -5834,7 +5854,11 @@
     return String(n).split("").map(ch => (ch >= "0" && ch <= "9") ? map[ch.charCodeAt(0)-48] : ch).join("");
   }
   function buildAyahMarkerHtml(inSurah){
-    return ` <span class="ayah-end">﴿${toArabicIndicDigits(inSurah)}﴾</span>`;
+    return `<span class="ayah-end">﴿${toArabicIndicDigits(inSurah)}﴾</span>`;
+  }
+
+  function appendAyahMarkerToToken(tokenHtml, markerHtml, includeMarker){
+    return includeMarker ? `${tokenHtml || ""}${markerHtml || ""}` : (tokenHtml || "");
   }
 
   function stripTrailingAyahNumberHtml(rawHtml){
@@ -6309,9 +6333,10 @@
 
     const parts = [];
     for(let i = ln.start; i < ln.end; i++){
-      parts.push(`<span class="w">${a.tokens[i]}</span>`);
+      const isTailWord = !!(isLastLine && i === (ln.end - 1));
+      parts.push(`<span class="w${isTailWord ? ' ayah-tail' : ''}"${isTailWord ? ' data-ayah-tail="1"' : ''}>${appendAyahMarkerToToken(a.tokens[i], a.markerHtml, isTailWord)}</span>`);
     }
-    $measure.innerHTML = `<span class="rtl-line">${parts.join(" ")}</span>` + (isLastLine ? (a.markerHtml || "") : "");
+    $measure.innerHTML = `<span class="rtl-line">${parts.join(" ")}</span>`;
     const width = $measure.scrollWidth || 0;
     return { ok: width <= maxW, width, maxW };
   }
@@ -7568,10 +7593,11 @@ Fichier: ${reciter.jsonPath}`);
       const parts = [];
       for(let i = ln.start; i < end; i++){
         const tok = a.tokens[i];
-        parts.push(`<span class="w" data-i="${i}">${tok}</span>`);
+        const isTailWord = !!(isLastLine && i === (end - 1));
+        parts.push(`<span class="w${isTailWord ? ' ayah-tail' : ''}" data-i="${i}"${isTailWord ? ' data-ayah-tail="1"' : ''}>${appendAyahMarkerToToken(tok, a.markerHtml, isTailWord)}</span>`);
       }
       const lineHtml = `<span class="rtl-line">${parts.join(" ")}</span>`;
-      $ar.innerHTML = lineHtml + (isLastLine ? (a.markerHtml||"") : "");
+      $ar.innerHTML = lineHtml;
       tries++;
       if($ar.scrollWidth <= maxW) break;
     }
@@ -7582,10 +7608,11 @@ Fichier: ${reciter.jsonPath}`);
     const parts = [];
     for(let i = ln.start; i < ln.end; i++){
       const tok = a.tokens[i];
-      parts.push(`<span class="w" data-i="${i}">${tok}</span>`);
+      const isTailWord = !!(isLastLine && i === (ln.end - 1));
+      parts.push(`<span class="w${isTailWord ? ' ayah-tail' : ''}" data-i="${i}"${isTailWord ? ' data-ayah-tail="1"' : ''}>${appendAyahMarkerToToken(tok, a.markerHtml, isTailWord)}</span>`);
     }
     const lineHtml = `<span class="rtl-line">${parts.join(" ")}</span>`;
-    $ar.innerHTML = lineHtml + (isLastLine ? (a.markerHtml||"") : "");
+    $ar.innerHTML = lineHtml;
   }
 
   function renderNormalFull(){
@@ -7616,9 +7643,14 @@ Fichier: ${reciter.jsonPath}`);
     $fr.textContent = ($trKey.value ? getFrenchTextForRenderedArabicLine(a, li, ln) : "");
 
     if(!wbwEnabled){
-      const chunkHtml = a.tokens.slice(ln.start, ln.end).join(" ");
+      const chunkTokens = a.tokens.slice(ln.start, ln.end);
+      if(isLastLine && chunkTokens.length){
+        const lastIdx = chunkTokens.length - 1;
+        chunkTokens[lastIdx] = appendAyahMarkerToToken(chunkTokens[lastIdx], a.markerHtml, true);
+      }
+      const chunkHtml = chunkTokens.join(" ");
       resetRenderedWordCache();
-      $ar.innerHTML = chunkHtml + (isLastLine ? (a.markerHtml||"") : "");
+      $ar.innerHTML = chunkHtml;
       renderedLineKey = "";
       $meta.textContent = `[${APP_VERSION}] ${getSurahLabel(surah)} — Ayah ${a.inSurah} — ${reciterObj.name} — ligne ${li+1}/${a.lines.length}`;
       return;
