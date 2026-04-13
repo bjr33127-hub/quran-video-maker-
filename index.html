@@ -2533,6 +2533,8 @@
   const $next  = document.getElementById("next");
   const $reload= document.getElementById("reload");
   const $toggleMenu = document.getElementById("toggleMenu");
+  const $menuFilterChips = Array.from(document.querySelectorAll(".menu-filter-chip[data-menu-filter]"));
+  const $menuSections = Array.from(document.querySelectorAll(".menu-section[data-menu-category]"));
   const $download = document.getElementById("download");
   const $clearCache = document.getElementById("clearCache");
   const $personalizedName = document.getElementById("personalizedName");
@@ -2803,6 +2805,7 @@
   let obsAutomationEnabled = !!$obsAutomation.checked;
   let obsAutomationMode = $obsMode?.value || "surah";
   let menuOpen = !!storedPreferences.menuOpen;
+  let activeMenuFilter = normalizeMenuFilter(storedPreferences.menuFilter);
   const DEFAULT_CALLIGRAPHY_STYLE = "thuluth-ornate";
   document.documentElement.dataset.mobile = mobileMode ? "1" : "0";
   const MOBILE_PHONE_BREAKPOINT = 520;
@@ -3401,6 +3404,28 @@
     $app.dataset.menuOpen = menuOpen ? "1" : "0";
     $toggleMenu.setAttribute("aria-expanded", menuOpen ? "true" : "false");
     $toggleMenu.textContent = menuOpen ? "▴ Réduire le menu" : "⚙︎ Affichage avancé";
+  }
+
+  function normalizeMenuFilter(value){
+    const normalized = String(value || "").trim().toLowerCase();
+    return ["all", "appearance", "scene", "obs"].includes(normalized) ? normalized : "all";
+  }
+
+  function applyMenuFilter(){
+    const currentFilter = normalizeMenuFilter(activeMenuFilter);
+    activeMenuFilter = currentFilter;
+    for(const chip of $menuFilterChips){
+      const chipFilter = normalizeMenuFilter(chip.dataset.menuFilter);
+      const isActive = chipFilter === currentFilter;
+      chip.classList.toggle("active", isActive);
+      chip.setAttribute("aria-selected", isActive ? "true" : "false");
+    }
+    for(const section of $menuSections){
+      const category = normalizeMenuFilter(section.dataset.menuCategory);
+      const shouldShow = currentFilter === "all" || category === currentFilter;
+      section.dataset.filterHidden = shouldShow ? "0" : "1";
+      section.setAttribute("aria-hidden", shouldShow ? "false" : "true");
+    }
   }
 
   function applyCalligraphyStyle(){
@@ -8385,7 +8410,8 @@ Fichier: ${reciter.jsonPath}`);
       obsAutomationEnabled: !!$obsAutomation.checked,
       obsAutomationMode: $obsMode?.value || "surah",
       obsWsUrl: ($obsWsUrl.value || "").trim(),
-      menuOpen
+      menuOpen,
+      menuFilter: normalizeMenuFilter(activeMenuFilter)
     };
   }
 
@@ -9583,6 +9609,18 @@ Fichier: ${reciter.jsonPath}`);
     queuePersistPreferences();
   });
 
+  for(const chip of $menuFilterChips){
+    chip.setAttribute("role", "tab");
+    chip.setAttribute("aria-selected", chip.classList.contains("active") ? "true" : "false");
+    chip.addEventListener("click", () => {
+      const nextFilter = normalizeMenuFilter(chip.dataset.menuFilter);
+      if(nextFilter === activeMenuFilter) return;
+      activeMenuFilter = nextFilter;
+      applyMenuFilter();
+      queuePersistPreferences();
+    });
+  }
+
   $wbwOn.addEventListener("change", () => {
     if(reciterObj.type === "mp3q_timing"){
       $wbwOn.checked = false;
@@ -9764,6 +9802,7 @@ Fichier: ${reciter.jsonPath}`);
     applyMinimalMode();
     applyTransparentBackground();
     applyMenuState();
+    applyMenuFilter();
     applyCalligraphyStyle();
     applyWbwEffect();
 
