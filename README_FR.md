@@ -229,6 +229,17 @@ Depuis `Affichage avance`, section import personnalise :
 - le sidecar reconstruit ensuite un manifest local compatible avec le pipeline QUL
 - vous pouvez ensuite `Retoucher l'import choisi` pour ajuster les marges et renommer l'import
 
+Flux conseille :
+
+1. Ouvrez l'application desktop Electron.
+2. Ouvrez `Affichage avance`.
+3. Dans `Import personnalise`, cliquez sur `Choisir audio`.
+4. Selectionnez un MP3 d'une seule sourate.
+5. Cliquez sur `Detecter la sourate` pour verifier le resultat, ou directement sur `Auto-detecter puis analyser`.
+6. Attendez la pre-analyse.
+7. Une fois l'import cree, choisissez ce recitateur dans la liste normale des recitateurs.
+8. Si besoin, utilisez `Retoucher l'import choisi` pour renommer l'import ou ajuster les marges inter-verset sans relancer l'analyse complete.
+
 Ce mode est pratique si vous voulez :
 
 - reutiliser n'importe quelle recitation propre d'une sourate
@@ -241,6 +252,39 @@ Pre-requis pour l'import personnalise depuis les sources :
 - `python`
 - `ffmpeg`
 - une cle `GROQ_API_KEY`
+
+Ou creer la cle Groq :
+
+- ouvrez [console.groq.com/keys](https://console.groq.com/keys)
+- connectez-vous
+- creez une nouvelle API key
+- copiez-la tout de suite
+
+Ou mettre la cle :
+
+- creez un fichier `.env` ou `.env.local` a la racine du projet
+- ajoutez simplement :
+
+```env
+GROQ_API_KEY=votre_cle_groq_ici
+```
+
+- relancez completement l'application Electron apres avoir ajoute la cle
+
+Le chargeur desktop lit en priorite les fichiers suivants :
+
+- `./.env`
+- `./.env.local`
+- `electron/personalized_import/.env`
+- `electron/personalized_import/.env.local`
+
+Les fichiers `.env.example` peuvent aussi etre lus en secours, mais il vaut mieux mettre la vraie cle dans `.env` ou `.env.local`.
+
+Important :
+
+- l'import personnalise est un mode desktop/Electron, pas le mode PWA mobile
+- `python`, `ffmpeg` et `GROQ_API_KEY` doivent tous etre disponibles avant de lancer l'analyse
+- si vous changez la cle ou installez `ffmpeg` apres coup, relancez l'application
 
 Le cache des imports personnalises est enregistre dans le dossier utilisateur de l'application, ce qui permet de retrouver vos imports apres redemarrage.
 
@@ -369,21 +413,14 @@ Important :
 
 Exemples tires de la chaine [AlOufouq](https://www.youtube.com/@AlOufouq) :
 
-Captures plein ecran du lecteur :
-
-Sourate 013 - Ar-Ra'd
-![Apercu plein ecran Ar-Ra'd](docs/screenshots/example-ar-rad-fullscreen.png)
-
-Sourate 012 - Yusuf
-![Apercu plein ecran Yusuf](docs/screenshots/example-yusuf-fullscreen.png)
-
-Short mobile - sourate Ash-Sharh
-![Apercu mobile Ash-Sharh](docs/screenshots/example-al-sharh-mobile.png)
-
-- [Sourate 013 - Ar-Ra'd | Mishary Rashid | VOSTFR](https://www.youtube.com/watch?v=lR3mJiYWJbA)
-- [Sourate 012 - Yusuf | Mishary Rashid | VOSTFR](https://www.youtube.com/watch?v=qAhaz8wgvkA)
-- [Sourate 011 - Hud | Mishary Rashid | VOSTFR](https://www.youtube.com/watch?v=Jc07JZK9aaA)
-- [Short - sourate al sharh](https://www.youtube.com/shorts/pyegyfnfZKk)
+- Sourate 013 - Ar-Ra'd  
+  [![Sourate 013 - Ar-Ra'd](https://img.youtube.com/vi/lR3mJiYWJbA/hqdefault.jpg)](https://www.youtube.com/watch?v=lR3mJiYWJbA)
+- Sourate 012 - Yusuf  
+  [![Sourate 012 - Yusuf](https://img.youtube.com/vi/qAhaz8wgvkA/hqdefault.jpg)](https://www.youtube.com/watch?v=qAhaz8wgvkA)
+- Sourate 011 - Hud  
+  [![Sourate 011 - Hud](https://img.youtube.com/vi/Jc07JZK9aaA/hqdefault.jpg)](https://www.youtube.com/watch?v=Jc07JZK9aaA)
+- Short - sourate al sharh  
+  [![Short - sourate al sharh](https://img.youtube.com/vi/pyegyfnfZKk/hqdefault.jpg)](https://www.youtube.com/shorts/pyegyfnfZKk)
 
 Ces exemples montrent le type de rendu que l'application peut alimenter : recitation, texte arabe, traduction et format long ou short.
 

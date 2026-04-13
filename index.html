@@ -1463,6 +1463,7 @@
       text-shadow: none;
       filter: none;
       opacity: .96;
+      vertical-align:baseline;
     }
     #ar[data-wbw="on"] .w .ayah-end{
       display:inline-block;
@@ -1487,7 +1488,8 @@
 
     #ar[data-wbw="on"] .w.hl{
       transform: translateY(0);
-      background-size: 220% 100%;
+      margin-inline:-0.035em;
+      background-size: 180% 100%;
       background-position: 0% 50%;
       -webkit-background-clip: text;
       background-clip: text;
@@ -1909,9 +1911,87 @@
       :root[data-mobile="1"] .bar{
         padding:7px 8px;
       }
+      :root[data-mobile="1"] .app[data-platform="web"] .bar{
+        padding:0;
+        background:transparent;
+        border:none;
+        box-shadow:none;
+        gap:8px;
+      }
       :root[data-mobile="1"] .bar-advanced{
         max-height:52vh;
         overscroll-behavior:contain;
+      }
+      :root[data-mobile="1"] .app[data-platform="web"] .bar-primary{
+        gap:8px;
+        align-items:center;
+      }
+      :root[data-mobile="1"] .app[data-platform="web"] .primary-actions{
+        width:100%;
+        justify-content:space-between;
+        align-items:center;
+        gap:8px;
+      }
+      :root[data-mobile="1"] .app[data-platform="web"] .primary-selects,
+      :root[data-mobile="1"] .app[data-platform="web"] .status-group{
+        display:none;
+      }
+      :root[data-mobile="1"] .app[data-platform="web"][data-menu-open="1"] .primary-selects{
+        display:grid;
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+        gap:8px;
+        width:100%;
+      }
+      :root[data-mobile="1"] .app[data-platform="web"][data-menu-open="1"] .status-group{
+        display:flex;
+        width:100%;
+        justify-content:center;
+      }
+      :root[data-mobile="1"] .app[data-platform="web"] .player-group{
+        flex:1 1 auto;
+        width:auto;
+      }
+      :root[data-mobile="1"] .app[data-platform="web"] .player-group button{
+        min-width:46px;
+      }
+      :root[data-mobile="1"] .app[data-platform="web"] #toggleMenu{
+        width:46px;
+        height:46px;
+        min-width:46px;
+        padding:0;
+        border-radius:999px;
+        font-size:0;
+        line-height:1;
+        flex:0 0 46px;
+        position:relative;
+      }
+      :root[data-mobile="1"] .app[data-platform="web"] #toggleMenu::before{
+        content:"⚙";
+        font-size:19px;
+      }
+      :root[data-mobile="1"] .app[data-platform="web"] .bar-advanced{
+        position:static;
+        top:auto;
+        left:auto;
+        right:auto;
+        order:4;
+        padding:12px;
+        border-radius:20px;
+        max-height:min(68svh, 68dvh);
+      }
+      :root[data-mobile="1"] .app[data-platform="web"] .menu-toolbar{
+        position:static;
+        padding:0;
+        margin:0 0 12px;
+        background:none;
+        border:none;
+        box-shadow:none;
+      }
+      :root[data-mobile="1"] .app[data-platform="web"] .menu-toolbar-copy{
+        display:none;
+      }
+      :root[data-mobile="1"] .app[data-platform="web"] .menu-filter-group{
+        width:100%;
       }
       :root[data-mobile="1"] .menu-toolbar{
         padding:10px;
@@ -2717,6 +2797,7 @@
 
   const PREFERENCES_STORAGE_KEY = "qvm.preferences.v1";
   const INSTALL_BANNER_STORAGE_KEY = "qvm.installBanner.dismissed.v1";
+  const WEB_DEFAULTS_VERSION = 1;
 
   function readStoredPreferences(){
     try{
@@ -2778,8 +2859,26 @@
     if(typeof prefs.obsWsUrl === "string" && prefs.obsWsUrl.trim()) $obsWsUrl.value = prefs.obsWsUrl.trim();
   }
 
+  function applyWebPlatformDefaultsToControls(prefs){
+    if(platformMode !== "web") return false;
+    const version = Number(prefs?.webDefaultsVersion || 0);
+    if(version >= WEB_DEFAULTS_VERSION) return false;
+    $mobileMode.checked = true;
+    $minimalUi.checked = true;
+    $transparentBg.checked = false;
+    setSelectValueIfKnown($fontCalSurah, "aref");
+    setSelectValueIfKnown($fontFr, "'Cinzel', serif");
+    setSelectValueIfKnown($textFx, "ethereal");
+    setSelectValueIfKnown($wbwFx, "gold");
+    prefs.webDefaultsVersion = WEB_DEFAULTS_VERSION;
+    prefs.menuOpen = false;
+    prefs.menuFilter = "all";
+    return true;
+  }
+
   const storedPreferences = readStoredPreferences();
   applyStoredPreferencesToControls(storedPreferences);
+  const appliedWebDefaults = applyWebPlatformDefaultsToControls(storedPreferences);
   let pendingStoredReciterValue = typeof storedPreferences.reciterValue === "string" ? storedPreferences.reciterValue : "";
   let pendingStoredSurah = Number.isFinite(Number(storedPreferences.surah)) ? Number(storedPreferences.surah) : null;
   let pendingStoredAyahInSurah = Number.isFinite(Number(storedPreferences.ayahInSurah)) ? Number(storedPreferences.ayahInSurah) : null;
@@ -3513,7 +3612,10 @@
   function applyMenuState(){
     $app.dataset.menuOpen = menuOpen ? "1" : "0";
     $toggleMenu.setAttribute("aria-expanded", menuOpen ? "true" : "false");
-    $toggleMenu.textContent = menuOpen ? "▴ Réduire le menu" : "⚙︎ Affichage avancé";
+    const compactWebMobile = platformMode === "web" && mobileMode;
+    $toggleMenu.textContent = compactWebMobile ? (menuOpen ? "Fermer le menu" : "Ouvrir le menu") : (menuOpen ? "▴ Réduire le menu" : "⚙︎ Affichage avancé");
+    $toggleMenu.setAttribute("aria-label", menuOpen ? "Fermer le menu avance" : "Ouvrir le menu avance");
+    $toggleMenu.title = menuOpen ? "Fermer le menu avance" : "Ouvrir le menu avance";
   }
 
   function normalizeMenuFilter(value){
@@ -8749,6 +8851,7 @@ Fichier: ${reciter.jsonPath}`);
       fontCalSurah: $fontCalSurah.value || "",
       fontReciter: $fontReciter.value || "",
       mobileTitleMode: $mobileTitleMode?.value || "phonetic",
+      webDefaultsVersion: platformMode === "web" ? WEB_DEFAULTS_VERSION : 0,
       obsAutomationEnabled: !!$obsAutomation.checked,
       obsAutomationMode: $obsMode?.value || "surah",
       obsWsUrl: ($obsWsUrl.value || "").trim(),
@@ -10165,6 +10268,9 @@ Fichier: ${reciter.jsonPath}`);
     configureInstallBanner();
     configureMediaSession();
     updateInstallBanner();
+    if(appliedWebDefaults){
+      queuePersistPreferences();
+    }
 
     applyTextFx();
     applyFonts();
