@@ -18,6 +18,8 @@ pnpm-debug.log*
 .tmp/
 tmp/
 temp/
+__pycache__/
+*.pyc
 
 coverage/
 .nyc_output/

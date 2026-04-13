@@ -1,4 +1,4 @@
-const { contextBridge } = require("electron");
+const { contextBridge, ipcRenderer } = require("electron");
 
 async function fetchJson(path, options = {}) {
   const response = await fetch(`http://127.0.0.1:5500${path}`, {
@@ -25,5 +25,25 @@ contextBridge.exposeInMainWorld("qvmApp", {
   stopBatch: () => fetchJson("/api/orchestrator/stop", {
     method: "POST",
     body: JSON.stringify({})
-  })
+  }),
+  pickPersonalizedAudio: () => ipcRenderer.invoke("qvm:pick-personalized-audio"),
+  getPersonalizedImports: () => fetchJson("/api/personalized/imports").then((payload) => payload.imports || []),
+  detectPersonalizedSurah: (config = {}) => fetchJson("/api/personalized/detect", {
+    method: "POST",
+    body: JSON.stringify(config)
+  }).then((payload) => payload.detection),
+  startPersonalizedImport: (config = {}) => fetchJson("/api/personalized/import", {
+    method: "POST",
+    body: JSON.stringify(config)
+  }).then((payload) => payload.job),
+  updatePersonalizedImport: (config = {}) => fetchJson("/api/personalized/update", {
+    method: "POST",
+    body: JSON.stringify(config)
+  }).then((payload) => payload.job),
+  deletePersonalizedImport: (id) => fetchJson("/api/personalized/delete", {
+    method: "POST",
+    body: JSON.stringify({ id })
+  }),
+  getPersonalizedImportStatus: (jobId) => fetchJson(`/api/personalized/status?jobId=${encodeURIComponent(jobId)}`).then((payload) => payload.job),
+  renameRecordedFile: (config = {}) => ipcRenderer.invoke("qvm:rename-recorded-file", config)
 });

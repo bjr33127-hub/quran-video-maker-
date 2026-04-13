@@ -1,9 +1,10 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain } = require("electron");
 const crypto = require("crypto");
 const fs = require("fs");
 const fsp = require("fs/promises");
 const http = require("http");
 const path = require("path");
+const { PersonalizedReciterManager } = require("./personalized-reciter-manager");
 
 const APP_ROOT = path.join(__dirname, "..");
 const HOST = "127.0.0.1";
@@ -28,6 +29,7 @@ const STOP_REQUESTED_CODE = "BATCH_STOP_REQUESTED";
 let mainWindow = null;
 let localServer = null;
 let playerReady = false;
+let personalizedManager = null;
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -56,6 +58,50 @@ function ensureDirSync(dirPath) {
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true });
   }
+}
+
+function sanitizeWindowsFileBaseName(value) {
+  let sanitized = String(value || "")
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/[. ]+$/g, "")
+    .trim();
+
+  if (!sanitized) {
+    sanitized = "Enregistrement";
+  }
+
+  const reserved = new Set([
+    "CON", "PRN", "AUX", "NUL",
+    "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+    "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+  ]);
+  if (reserved.has(sanitized.toUpperCase())) {
+    sanitized = `${sanitized} fichier`;
+  }
+
+  return sanitized;
+}
+
+async function buildUniqueSiblingPath(filePath, desiredBaseName) {
+  const parsed = path.parse(filePath);
+  const baseName = sanitizeWindowsFileBaseName(desiredBaseName);
+  const sourcePath = path.resolve(filePath);
+
+  for (let index = 0; index < 1000; index += 1) {
+    const suffix = index === 0 ? "" : ` (${index + 1})`;
+    const candidatePath = path.join(parsed.dir, `${baseName}${suffix}${parsed.ext}`);
+    if (path.resolve(candidatePath) === sourcePath) {
+      return candidatePath;
+    }
+    try {
+      await fsp.access(candidatePath, fs.constants.F_OK);
+    } catch (_) {
+      return candidatePath;
+    }
+  }
+
+  throw new Error("Impossible de trouver un nom de fichier disponible pour l'enregistrement OBS.");
 }
 
 function safeResolve(urlPath) {
@@ -685,6 +731,98 @@ class BatchOrchestrator {
 const orchestrator = new BatchOrchestrator();
 
 async function handleApiRequest(req, res) {
+  if (req.method === "GET" && req.url.startsWith("/api/personalized/source")) {
+    try {
+      if (!personalizedManager) throw new Error("Gestionnaire d'import non initialise.");
+      const parsed = new URL(req.url, `http://${HOST}:${PORT}`);
+      const importId = String(parsed.searchParams.get("id") || "").trim();
+      if (!importId) throw new Error("Import introuvable.");
+      const metadata = await personalizedManager.loadImportMetadata(importId);
+      if (!metadata?.sourceAudioPath || !fs.existsSync(metadata.sourceAudioPath)) {
+        throw new Error("Le fichier source de cet import est introuvable.");
+      }
+      sendFile(res, metadata.sourceAudioPath);
+    } catch (error) {
+      sendJson(res, 404, { ok: false, error: toErrorMessage(error) });
+    }
+    return true;
+  }
+
+  if (req.method === "GET" && req.url === "/api/personalized/imports") {
+    try {
+      const imports = personalizedManager ? await personalizedManager.reloadImports() : [];
+      sendJson(res, 200, { ok: true, imports });
+    } catch (error) {
+      sendJson(res, 400, { ok: false, error: toErrorMessage(error) });
+    }
+    return true;
+  }
+
+  if (req.method === "POST" && req.url === "/api/personalized/import") {
+    try {
+      if (!personalizedManager) throw new Error("Gestionnaire d'import non initialise.");
+      const body = await readJsonBody(req);
+      const job = await personalizedManager.startImport(body || {});
+      sendJson(res, 200, { ok: true, job });
+    } catch (error) {
+      sendJson(res, 400, { ok: false, error: toErrorMessage(error) });
+    }
+    return true;
+  }
+
+  if (req.method === "POST" && req.url === "/api/personalized/detect") {
+    try {
+      if (!personalizedManager) throw new Error("Gestionnaire d'import non initialise.");
+      const body = await readJsonBody(req);
+      const detection = await personalizedManager.detectSurah(body || {});
+      sendJson(res, 200, { ok: true, detection });
+    } catch (error) {
+      sendJson(res, 400, { ok: false, error: toErrorMessage(error) });
+    }
+    return true;
+  }
+
+  if (req.method === "POST" && req.url === "/api/personalized/update") {
+    try {
+      if (!personalizedManager) throw new Error("Gestionnaire d'import non initialise.");
+      const body = await readJsonBody(req);
+      const job = await personalizedManager.updateImportSettings(body || {});
+      sendJson(res, 200, { ok: true, job });
+    } catch (error) {
+      sendJson(res, 400, { ok: false, error: toErrorMessage(error) });
+    }
+    return true;
+  }
+
+  if (req.method === "GET" && req.url.startsWith("/api/personalized/status")) {
+    try {
+      if (!personalizedManager) throw new Error("Gestionnaire d'import non initialise.");
+      const parsed = new URL(req.url, `http://${HOST}:${PORT}`);
+      const jobId = parsed.searchParams.get("jobId") || "";
+      const job = personalizedManager.getJobStatus(jobId);
+      if (!job) {
+        sendJson(res, 404, { ok: false, error: "Job introuvable." });
+      } else {
+        sendJson(res, 200, { ok: true, job });
+      }
+    } catch (error) {
+      sendJson(res, 400, { ok: false, error: toErrorMessage(error) });
+    }
+    return true;
+  }
+
+  if (req.method === "POST" && req.url === "/api/personalized/delete") {
+    try {
+      if (!personalizedManager) throw new Error("Gestionnaire d'import non initialise.");
+      const body = await readJsonBody(req);
+      const payload = await personalizedManager.deleteImport(body?.id);
+      sendJson(res, 200, payload);
+    } catch (error) {
+      sendJson(res, 400, { ok: false, error: toErrorMessage(error) });
+    }
+    return true;
+  }
+
   if (req.method === "GET" && req.url === "/api/orchestrator/status") {
     sendJson(res, 200, orchestrator.getStatus());
     return true;
@@ -730,6 +868,23 @@ async function handleApiRequest(req, res) {
   return false;
 }
 
+function sendFile(res, filePath) {
+  fs.stat(filePath, (statErr, stats) => {
+    if (statErr || !stats.isFile()) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
+
+    const ext = path.extname(filePath).toLowerCase();
+    res.writeHead(200, {
+      "Content-Type": MIME_TYPES[ext] || "application/octet-stream",
+      "Cache-Control": "no-cache"
+    });
+    fs.createReadStream(filePath).pipe(res);
+  });
+}
+
 function startLocalServer() {
   if (localServer) return Promise.resolve();
 
@@ -741,27 +896,19 @@ function startLocalServer() {
       return;
     }
 
+    const personalizedAsset = personalizedManager?.resolveAssetPath(req.url);
+    if (personalizedAsset) {
+      sendFile(res, personalizedAsset);
+      return;
+    }
+
     const filePath = safeResolve(req.url);
     if (!filePath) {
       res.writeHead(403);
       res.end("Forbidden");
       return;
     }
-
-    fs.stat(filePath, (statErr, stats) => {
-      if (statErr || !stats.isFile()) {
-        res.writeHead(404);
-        res.end("Not found");
-        return;
-      }
-
-      const ext = path.extname(filePath).toLowerCase();
-      res.writeHead(200, {
-        "Content-Type": MIME_TYPES[ext] || "application/octet-stream",
-        "Cache-Control": "no-cache"
-      });
-      fs.createReadStream(filePath).pipe(res);
-    });
+    sendFile(res, filePath);
   });
 
   return new Promise((resolve, reject) => {
@@ -803,6 +950,60 @@ function createMainWindow() {
 }
 
 app.whenReady().then(async () => {
+  personalizedManager = new PersonalizedReciterManager({
+    app,
+    scriptPath: path.join(__dirname, "personalized_import", "offline_import.py")
+  });
+  await personalizedManager.init();
+
+  ipcMain.handle("qvm:pick-personalized-audio", async () => {
+    const response = await dialog.showOpenDialog({
+      title: "Choisir une recitation complete",
+      properties: ["openFile"],
+      filters: [
+        { name: "Audio", extensions: ["mp3", "wav", "m4a", "ogg", "webm", "flac", "aac"] },
+        { name: "Tous les fichiers", extensions: ["*"] }
+      ]
+    });
+    if (response.canceled || !response.filePaths?.length) {
+      return { canceled: true, filePath: "", sizeBytes: 0 };
+    }
+    const filePath = response.filePaths[0];
+    const sizeBytes = fs.existsSync(filePath) ? (fs.statSync(filePath).size || 0) : 0;
+    return { canceled: false, filePath, sizeBytes };
+  });
+
+  ipcMain.handle("qvm:rename-recorded-file", async (_event, payload = {}) => {
+    const rawFilePath = String(payload?.filePath || "").trim();
+    const desiredBaseName = String(payload?.desiredBaseName || "").trim();
+    if (!rawFilePath) {
+      throw new Error("Fichier OBS introuvable pour le renommage.");
+    }
+
+    const sourcePath = path.resolve(rawFilePath);
+    let sourceStat = null;
+    try {
+      sourceStat = await fsp.stat(sourcePath);
+    } catch (_) {
+      sourceStat = null;
+    }
+    if (!sourceStat?.isFile()) {
+      throw new Error(`Fichier OBS introuvable: ${sourcePath}`);
+    }
+
+    const targetPath = await buildUniqueSiblingPath(sourcePath, desiredBaseName);
+    if (path.resolve(targetPath) !== sourcePath) {
+      await fsp.rename(sourcePath, targetPath);
+    }
+
+    return {
+      ok: true,
+      originalPath: sourcePath,
+      filePath: targetPath,
+      changed: path.resolve(targetPath) !== sourcePath
+    };
+  });
+
   await startLocalServer();
   createMainWindow();
 

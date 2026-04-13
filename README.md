@@ -140,6 +140,34 @@ Exemples :
 
 Si vous remplacez des MP3 locaux, pensez a cliquer sur `Vider cache`.
 
+### Recitateur personnalise pre-analyse
+
+Le nouveau flux sert a importer une recitation complete non predecoupee, puis a la transformer en recitateur mot a mot exploitable dans l'application.
+
+Depuis `Affichage avance`, section import personnalise :
+
+- choisissez un fichier audio local
+- limite actuelle : `25 Mo max`
+- utilisez `Detecter la sourate` ou `Auto-detecter puis analyser`
+- l'application detecte la sourate et le verset de depart
+- le sidecar reconstruit ensuite un manifest local compatible avec le pipeline QUL
+- vous pouvez ensuite `Retoucher l'import choisi` pour ajuster les marges et renommer l'import
+
+Ce mode est pratique si vous voulez :
+
+- reutiliser n'importe quelle recitation propre d'une sourate
+- garder le suivi mot a mot arabe
+- conserver l'alignement arabe / traduction de l'application
+- corriger la fluidite inter-verset sans redonner tout l'audio
+
+Pre-requis pour l'import personnalise depuis les sources :
+
+- `python`
+- `ffmpeg`
+- une cle `GROQ_API_KEY`
+
+Le cache des imports personnalises est enregistre dans le dossier utilisateur de l'application, ce qui permet de retrouver vos imports apres redemarrage.
+
 ## 6. Premiere verification avant d'enregistrer
 
 Avant de faire une vraie video, faites ce test :
@@ -261,7 +289,18 @@ Important :
 - gardez OBS ouvert avant de lancer la lecture
 - evitez de modifier les reglages au milieu d'un enregistrement
 
-## 12. Problemes frequents
+## 12. Exemples de rendus
+
+Exemples tires de la chaine [AlOufouq](https://www.youtube.com/@AlOufouq) :
+
+- [Sourate 013 - Ar-Ra'd | Mishary Rashid | VOSTFR](https://www.youtube.com/watch?v=lR3mJiYWJbA)
+- [Sourate 012 - Yusuf | Mishary Rashid | VOSTFR](https://www.youtube.com/watch?v=qAhaz8wgvkA)
+- [Sourate 011 - Hud | Mishary Rashid | VOSTFR](https://www.youtube.com/watch?v=Jc07JZK9aaA)
+- [Short - sourate al sharh](https://www.youtube.com/shorts/pyegyfnfZKk)
+
+Ces exemples montrent le type de rendu que l'application peut alimenter : recitation, texte arabe, traduction et format long ou short.
+
+## 13. Problemes frequents
 
 ### Le son ne part pas
 
@@ -289,7 +328,7 @@ Important :
 - verifiez les noms de dossiers et de fichiers
 - utilisez bien des noms sur 3 chiffres
 
-## 13. Resume ultra court
+## 14. Resume ultra court
 
 Si vous voulez aller vite :
 
