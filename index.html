@@ -835,6 +835,8 @@
       white-space:nowrap;
       line-height:1.45;
       vertical-align:-0.08em;
+      direction:rtl;
+      unicode-bidi:isolate;
     }
 
     select{
@@ -1478,6 +1480,22 @@
       filter:none !important;
       -webkit-text-fill-color: rgba(255,255,255,.98) !important;
       color: rgba(255,255,255,.98) !important;
+    }
+    #ar[data-wbw="on"] .w.ayah-tail{
+      display:inline-flex;
+      align-items:baseline;
+      gap:.08em;
+      white-space:nowrap;
+      direction:rtl;
+      unicode-bidi:isolate;
+    }
+    #ar[data-wbw="on"] .w.ayah-tail .w-text{
+      display:inline-block;
+      unicode-bidi:isolate;
+    }
+    #ar[data-wbw="on"] .w.ayah-tail .ayah-end{
+      margin-inline-start:0 !important;
+      flex:0 0 auto;
     }
     :root[data-ios-webkit="1"] #ar[data-wbw="on"] .w.hl[data-ayah-tail="1"]{
       margin-inline:0;
@@ -5861,6 +5879,10 @@
     return includeMarker ? `${tokenHtml || ""}${markerHtml || ""}` : (tokenHtml || "");
   }
 
+  function buildAyahTailInnerHtml(tokenHtml, markerHtml){
+    return `<span class="w-text">${tokenHtml || ""}</span>${markerHtml || ""}`;
+  }
+
   function stripTrailingAyahNumberHtml(rawHtml){
     const div = document.createElement("div");
     div.innerHTML = rawHtml || "";
@@ -6334,7 +6356,7 @@
     const parts = [];
     for(let i = ln.start; i < ln.end; i++){
       const isTailWord = !!(isLastLine && i === (ln.end - 1));
-      parts.push(`<span class="w${isTailWord ? ' ayah-tail' : ''}"${isTailWord ? ' data-ayah-tail="1"' : ''}>${appendAyahMarkerToToken(a.tokens[i], a.markerHtml, isTailWord)}</span>`);
+      parts.push(`<span class="w${isTailWord ? ' ayah-tail' : ''}"${isTailWord ? ' data-ayah-tail="1"' : ''}>${isTailWord ? buildAyahTailInnerHtml(a.tokens[i], a.markerHtml) : a.tokens[i]}</span>`);
     }
     $measure.innerHTML = `<span class="rtl-line">${parts.join(" ")}</span>`;
     const width = $measure.scrollWidth || 0;
@@ -7594,7 +7616,7 @@ Fichier: ${reciter.jsonPath}`);
       for(let i = ln.start; i < end; i++){
         const tok = a.tokens[i];
         const isTailWord = !!(isLastLine && i === (end - 1));
-        parts.push(`<span class="w${isTailWord ? ' ayah-tail' : ''}" data-i="${i}"${isTailWord ? ' data-ayah-tail="1"' : ''}>${appendAyahMarkerToToken(tok, a.markerHtml, isTailWord)}</span>`);
+        parts.push(`<span class="w${isTailWord ? ' ayah-tail' : ''}" data-i="${i}"${isTailWord ? ' data-ayah-tail="1"' : ''}>${isTailWord ? buildAyahTailInnerHtml(tok, a.markerHtml) : tok}</span>`);
       }
       const lineHtml = `<span class="rtl-line">${parts.join(" ")}</span>`;
       $ar.innerHTML = lineHtml;
@@ -7609,7 +7631,7 @@ Fichier: ${reciter.jsonPath}`);
     for(let i = ln.start; i < ln.end; i++){
       const tok = a.tokens[i];
       const isTailWord = !!(isLastLine && i === (ln.end - 1));
-      parts.push(`<span class="w${isTailWord ? ' ayah-tail' : ''}" data-i="${i}"${isTailWord ? ' data-ayah-tail="1"' : ''}>${appendAyahMarkerToToken(tok, a.markerHtml, isTailWord)}</span>`);
+      parts.push(`<span class="w${isTailWord ? ' ayah-tail' : ''}" data-i="${i}"${isTailWord ? ' data-ayah-tail="1"' : ''}>${isTailWord ? buildAyahTailInnerHtml(tok, a.markerHtml) : tok}</span>`);
     }
     const lineHtml = `<span class="rtl-line">${parts.join(" ")}</span>`;
     $ar.innerHTML = lineHtml;
