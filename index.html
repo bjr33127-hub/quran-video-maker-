@@ -7431,6 +7431,33 @@ Fichier: ${reciter.jsonPath}`);
     }
   }
 
+  function stabilizeRenderedWordMetrics(){
+    if(!isIOSWebKit) return;
+    const nodes = Array.from($ar.querySelectorAll(".w[data-i]"));
+    if(!nodes.length) return;
+
+    for(const node of nodes){
+      node.style.width = "";
+      node.style.minWidth = "";
+      node.style.maxWidth = "";
+      node.style.flex = "";
+    }
+
+    const widths = nodes.map(node => {
+      const rect = node.getBoundingClientRect();
+      return { node, width: rect?.width || 0 };
+    });
+
+    for(const { node, width } of widths){
+      if(!(width > 0)) continue;
+      const px = `${width.toFixed(3)}px`;
+      node.style.width = px;
+      node.style.minWidth = px;
+      node.style.maxWidth = px;
+      node.style.flex = "0 0 auto";
+    }
+  }
+
   function getRenderedWordEl(globalWordIndex){
     const tokenIndex = Number(globalWordIndex);
     if(!Number.isFinite(tokenIndex)) return null;
@@ -7732,6 +7759,7 @@ Fichier: ${reciter.jsonPath}`);
         a.renderedLinesActual[li] = { start: ln.start, end: ln.end };
       }
       rebuildRenderedWordCache();
+      stabilizeRenderedWordMetrics();
       if($trKey.value){
         $fr.textContent = getFrenchTextForRenderedArabicLine(a, li, ln);
       }
