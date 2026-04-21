@@ -27,6 +27,8 @@ contextBridge.exposeInMainWorld("qvmApp", {
     body: JSON.stringify({})
   }),
   pickPersonalizedAudio: () => ipcRenderer.invoke("qvm:pick-personalized-audio"),
+  getPersonalizedGroqConfig: () => ipcRenderer.invoke("qvm:get-personalized-groq-config"),
+  setPersonalizedGroqApiKey: (value = "") => ipcRenderer.invoke("qvm:set-personalized-groq-api-key", value),
   getPersonalizedImports: () => fetchJson("/api/personalized/imports").then((payload) => payload.imports || []),
   detectPersonalizedSurah: (config = {}) => fetchJson("/api/personalized/detect", {
     method: "POST",

@@ -2495,6 +2495,18 @@
             <input id="personalizedSelectedFile" class="text-input" type="text" readonly placeholder="Aucun fichier selectionne" />
           </div>
 
+          <div class="pill" title="Cle API Groq utilisee pour la transcription de l'import personnalise">
+            <label for="personalizedGroqApiKey">Cle Groq</label>
+            <input id="personalizedGroqApiKey" class="text-input" type="password" placeholder="gsk_..." autocomplete="off" spellcheck="false" />
+          </div>
+
+          <button id="savePersonalizedGroqApiKey" type="button">Enregistrer cle Groq</button>
+          <button id="clearPersonalizedGroqApiKey" type="button">Effacer cle Groq</button>
+
+          <div class="menu-section-sub" id="personalizedGroqStatus">
+            Cle Groq non configuree dans l'application.
+          </div>
+
           <p class="menu-section-sub">Astuce fluidite: si un verset coupe trop tot, augmente surtout la marge de fin puis relance la retouche sur l'import choisi.</p>
 
           <div class="pill" title="Imports personnalises deja analyses et caches">
@@ -2732,6 +2744,10 @@
   const $clearCache = document.getElementById("clearCache");
   const $personalizedName = document.getElementById("personalizedName");
   const $personalizedSelectedFile = document.getElementById("personalizedSelectedFile");
+  const $personalizedGroqApiKey = document.getElementById("personalizedGroqApiKey");
+  const $savePersonalizedGroqApiKey = document.getElementById("savePersonalizedGroqApiKey");
+  const $clearPersonalizedGroqApiKey = document.getElementById("clearPersonalizedGroqApiKey");
+  const $personalizedGroqStatus = document.getElementById("personalizedGroqStatus");
   const $personalizedImportList = document.getElementById("personalizedImportList");
   const $personalizedEditName = document.getElementById("personalizedEditName");
   const $personalizedLeadPadMs = document.getElementById("personalizedLeadPadMs");
@@ -2969,6 +2985,12 @@
   let activePersonalizedJobId = "";
   let activePersonalizedImportId = "";
   let personalizedStatusPollTimer = null;
+  let personalizedGroqConfig = {
+    hasKey: false,
+    maskedKey: "",
+    savedInApp: false,
+    storagePath: ""
+  };
 
   // Mp3Q timing state
   let mp3qTiming = null; 
@@ -3699,12 +3721,19 @@
 
     if(!platformCapabilities.canManagePersonalizedImports){
       activePersonalizedImportId = "";
+      if($personalizedGroqApiKey) $personalizedGroqApiKey.disabled = true;
+      if($savePersonalizedGroqApiKey) $savePersonalizedGroqApiKey.disabled = true;
+      if($clearPersonalizedGroqApiKey) $clearPersonalizedGroqApiKey.disabled = true;
       if($pickPersonalizedAudio) $pickPersonalizedAudio.disabled = true;
       if($detectPersonalizedSurah) $detectPersonalizedSurah.disabled = true;
       if($startPersonalizedImport) $startPersonalizedImport.disabled = true;
       if($updatePersonalizedImport) $updatePersonalizedImport.disabled = true;
       if($refreshPersonalizedImports) $refreshPersonalizedImports.disabled = true;
       if($deletePersonalizedImport) $deletePersonalizedImport.disabled = true;
+    } else {
+      if($personalizedGroqApiKey) $personalizedGroqApiKey.disabled = false;
+      if($savePersonalizedGroqApiKey) $savePersonalizedGroqApiKey.disabled = false;
+      if($clearPersonalizedGroqApiKey) $clearPersonalizedGroqApiKey.disabled = !personalizedGroqConfig.hasKey;
     }
   }
 
@@ -8556,6 +8585,61 @@ Fichier: ${reciter.jsonPath}`);
     }
   }
 
+  function setPersonalizedGroqStatus(message, options = {}){
+    if(!$personalizedGroqStatus) return;
+    const text = String(message || "").trim() || "Cle Groq non configuree dans l'application.";
+    $personalizedGroqStatus.textContent = text;
+    $personalizedGroqStatus.dataset.state = options.error ? "error" : "info";
+    $personalizedGroqStatus.style.color = options.error ? "var(--danger, #ffb4b4)" : "";
+  }
+
+  function applyPersonalizedGroqConfig(config = {}, options = {}){
+    personalizedGroqConfig = {
+      hasKey: !!config?.hasKey,
+      maskedKey: String(config?.maskedKey || ""),
+      savedInApp: !!config?.savedInApp,
+      storagePath: String(config?.storagePath || "")
+    };
+    if($personalizedGroqApiKey){
+      $personalizedGroqApiKey.value = "";
+      $personalizedGroqApiKey.placeholder = personalizedGroqConfig.hasKey
+        ? `Cle deja enregistree (${personalizedGroqConfig.maskedKey || "masquee"})`
+        : "gsk_...";
+      $personalizedGroqApiKey.title = personalizedGroqConfig.savedInApp && personalizedGroqConfig.storagePath
+        ? `Cle stockee dans ${personalizedGroqConfig.storagePath}`
+        : "";
+    }
+    if($clearPersonalizedGroqApiKey){
+      $clearPersonalizedGroqApiKey.disabled = !personalizedGroqConfig.hasKey;
+    }
+    if(options.silent) return;
+    if(personalizedGroqConfig.hasKey){
+      const suffix = personalizedGroqConfig.savedInApp ? " dans l'application" : "";
+      setPersonalizedGroqStatus(`Cle Groq configuree${suffix}: ${personalizedGroqConfig.maskedKey || "masquee"}.`);
+    } else {
+      setPersonalizedGroqStatus("Cle Groq non configuree dans l'application.");
+    }
+  }
+
+  async function refreshPersonalizedGroqConfig(options = {}){
+    const silent = !!options.silent;
+    if(!window.qvmApp?.getPersonalizedGroqConfig){
+      applyPersonalizedGroqConfig({ hasKey: false, maskedKey: "", savedInApp: false, storagePath: "" }, { silent });
+      if(!silent) setPersonalizedGroqStatus("Configuration Groq indisponible hors Electron.", { error: true });
+      return personalizedGroqConfig;
+    }
+    try{
+      const config = await window.qvmApp.getPersonalizedGroqConfig();
+      applyPersonalizedGroqConfig(config, { silent });
+      return personalizedGroqConfig;
+    } catch(error){
+      if(!silent){
+        setPersonalizedGroqStatus(String(error), { error: true });
+      }
+      throw error;
+    }
+  }
+
   function getFileBaseName(filePath){
     return String(filePath || "").split(/[\\/]/).pop() || "";
   }
@@ -9965,6 +10049,45 @@ Fichier: ${reciter.jsonPath}`);
 
   $download.addEventListener("click", predownloadCurrentSurah);
   $clearCache.addEventListener("click", clearCache);
+  $savePersonalizedGroqApiKey?.addEventListener("click", async () => {
+    if(!window.qvmApp?.setPersonalizedGroqApiKey){
+      setPersonalizedGroqStatus("Configuration Groq indisponible hors Electron.", { error: true });
+      return;
+    }
+    const apiKey = String($personalizedGroqApiKey?.value || "").trim();
+    if(!apiKey){
+      setPersonalizedGroqStatus("Colle d'abord une cle Groq.", { error: true });
+      return;
+    }
+    try{
+      $savePersonalizedGroqApiKey.disabled = true;
+      const config = await window.qvmApp.setPersonalizedGroqApiKey(apiKey);
+      applyPersonalizedGroqConfig(config);
+      setPersonalizedImportStatus("Cle Groq enregistree. Tu peux lancer l'import personnalise.");
+    } catch(e){
+      setPersonalizedGroqStatus(String(e), { error: true });
+    } finally{
+      $savePersonalizedGroqApiKey.disabled = !platformCapabilities.canManagePersonalizedImports;
+    }
+  });
+
+  $clearPersonalizedGroqApiKey?.addEventListener("click", async () => {
+    if(!window.qvmApp?.setPersonalizedGroqApiKey){
+      setPersonalizedGroqStatus("Configuration Groq indisponible hors Electron.", { error: true });
+      return;
+    }
+    try{
+      $clearPersonalizedGroqApiKey.disabled = true;
+      const config = await window.qvmApp.setPersonalizedGroqApiKey("");
+      applyPersonalizedGroqConfig(config);
+      setPersonalizedImportStatus("Cle Groq retiree de l'application.");
+    } catch(e){
+      setPersonalizedGroqStatus(String(e), { error: true });
+    } finally{
+      $clearPersonalizedGroqApiKey.disabled = !personalizedGroqConfig.hasKey;
+    }
+  });
+
   $pickPersonalizedAudio?.addEventListener("click", async () => {
     if(!window.qvmApp?.pickPersonalizedAudio){
       setPersonalizedImportStatus("Import personnalise indisponible hors Electron.", { error: true });
@@ -10365,6 +10488,7 @@ Fichier: ${reciter.jsonPath}`);
     applySeparator();
     setPersonalizedSelectedFile("");
     setPersonalizedImportStatus("Aucun import personnalise charge.");
+    await refreshPersonalizedGroqConfig();
     syncPersonalizedEditControls(null);
 
     await loadTranslationsIndexSolid();

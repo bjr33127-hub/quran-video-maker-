@@ -29,6 +29,15 @@ function basenameLower(value) {
   return path.basename(String(value || "")).toLowerCase();
 }
 
+function maskSecret(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (raw.length <= 8) {
+    return `${raw.slice(0, 2)}***`;
+  }
+  return `${raw.slice(0, 4)}...${raw.slice(-4)}`;
+}
+
 function parseSimpleEnvFile(filePath) {
   if (!filePath || !fs.existsSync(filePath)) return {};
   const raw = fs.readFileSync(filePath, "utf8");
@@ -47,6 +56,27 @@ function parseSimpleEnvFile(filePath) {
     env[key] = value;
   }
   return env;
+}
+
+function formatEnvValue(value) {
+  const raw = String(value ?? "");
+  if (!raw) return '""';
+  if (/[\s#"']/u.test(raw)) {
+    return JSON.stringify(raw);
+  }
+  return raw;
+}
+
+function serializeSimpleEnv(envMap) {
+  const entries = Object.entries(envMap || {})
+    .map(([key, value]) => [String(key || "").trim(), String(value ?? "").trim()])
+    .filter(([key, value]) => key && value);
+  if (!entries.length) {
+    return "";
+  }
+  return entries
+    .map(([key, value]) => `${key}=${formatEnvValue(value)}`)
+    .join("\n") + "\n";
 }
 
 function sanitizeDisplayName(value) {
@@ -132,6 +162,49 @@ class PersonalizedReciterManager {
   async init() {
     await this.loadDetectionCache();
     await this.reloadImports();
+  }
+
+  getUserPersonalizedEnvPath() {
+    return path.join(this.userDataDir, "personalized_import", ".env.local");
+  }
+
+  async getGroqApiConfig() {
+    const env = this.loadProjectEnv();
+    const rawKey = String(env.GROQ_API_KEY || env.PERSONALIZED_GROQ_API_KEY || "").trim();
+    const userEnv = parseSimpleEnvFile(this.getUserPersonalizedEnvPath());
+    const storedKey = String(userEnv.GROQ_API_KEY || userEnv.PERSONALIZED_GROQ_API_KEY || "").trim();
+    return {
+      hasKey: !!rawKey,
+      maskedKey: maskSecret(rawKey),
+      savedInApp: !!storedKey,
+      storagePath: this.getUserPersonalizedEnvPath()
+    };
+  }
+
+  async setGroqApiKey(value) {
+    const nextValue = String(value || "").trim();
+    const envPath = this.getUserPersonalizedEnvPath();
+    const envDir = path.dirname(envPath);
+    ensureDirSync(envDir);
+
+    const nextEnv = {
+      ...parseSimpleEnvFile(envPath)
+    };
+    delete nextEnv.PERSONALIZED_GROQ_API_KEY;
+
+    if (nextValue) {
+      nextEnv.GROQ_API_KEY = nextValue;
+    } else {
+      delete nextEnv.GROQ_API_KEY;
+    }
+
+    const serialized = serializeSimpleEnv(nextEnv);
+    if (serialized) {
+      await fsp.writeFile(envPath, serialized, "utf8");
+    } else {
+      await fsp.rm(envPath, { force: true }).catch(() => {});
+    }
+    return this.getGroqApiConfig();
   }
 
   listImports() {

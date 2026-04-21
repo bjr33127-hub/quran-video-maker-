@@ -29,7 +29,7 @@
         "nsis",
         "portable"
       ],
-      "icon": "logo-build.png",
+      "icon": "logo-build.ico",
       "signAndEditExecutable": false
     },
     "nsis": {
@@ -47,6 +47,7 @@
       "electron/**",
       "index.html",
       "sw.js",
+      "logo-build.ico",
       "logo.png",
       "manifest.webmanifest",
       "icons/**",

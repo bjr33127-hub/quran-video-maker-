@@ -68,6 +68,18 @@ function getPackagedRuntimeDir() {
   return fs.existsSync(devRuntimeDir) ? devRuntimeDir : "";
 }
 
+function getAppIconPath() {
+  const candidates = [
+    path.join(APP_ROOT, "logo-build.ico"),
+    path.join(APP_ROOT, "logo-build.png"),
+    path.join(APP_ROOT, "logo.png"),
+    path.join(process.resourcesPath || "", "logo-build.ico"),
+    path.join(process.resourcesPath || "", "logo-build.png"),
+    path.join(process.resourcesPath || "", "logo.png")
+  ].filter(Boolean);
+  return candidates.find((candidate) => fs.existsSync(candidate)) || undefined;
+}
+
 function getPersonalizedImportScriptPath() {
   const runtimeDir = getPackagedRuntimeDir();
   const packagedScriptPath = runtimeDir
@@ -945,6 +957,7 @@ function createMainWindow() {
     height: 960,
     minWidth: 1100,
     minHeight: 720,
+    icon: getAppIconPath(),
     transparent: true,
     frame: false,
     backgroundColor: "#00000000",
@@ -969,6 +982,9 @@ function createMainWindow() {
 }
 
 app.whenReady().then(async () => {
+  if (process.platform === "win32") {
+    app.setAppUserModelId("com.qvm.player");
+  }
   const runtimeDir = getPackagedRuntimeDir();
   personalizedManager = new PersonalizedReciterManager({
     app,
@@ -992,6 +1008,20 @@ app.whenReady().then(async () => {
     const filePath = response.filePaths[0];
     const sizeBytes = fs.existsSync(filePath) ? (fs.statSync(filePath).size || 0) : 0;
     return { canceled: false, filePath, sizeBytes };
+  });
+
+  ipcMain.handle("qvm:get-personalized-groq-config", async () => {
+    if (!personalizedManager) {
+      throw new Error("Gestionnaire d'import non initialise.");
+    }
+    return personalizedManager.getGroqApiConfig();
+  });
+
+  ipcMain.handle("qvm:set-personalized-groq-api-key", async (_event, value = "") => {
+    if (!personalizedManager) {
+      throw new Error("Gestionnaire d'import non initialise.");
+    }
+    return personalizedManager.setGroqApiKey(value);
   });
 
   ipcMain.handle("qvm:rename-recorded-file", async (_event, payload = {}) => {
