@@ -8,6 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Quran Video Maker" />
   <title>Quran Video Maker</title>
+  <link rel="icon" type="image/x-icon" href="./logo-build.ico">
   <link rel="icon" type="image/png" sizes="512x512" href="./logo.png">
   <link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
@@ -2482,6 +2483,23 @@
         </section>
 
         <section class="menu-section" data-menu-category="scene" data-electron-only="1">
+          <h3>API Groq</h3>
+          <p class="menu-section-sub">Colle ici ta cle Groq pour les imports personnalises. Pas besoin d'editer un fichier .env a la main.</p>
+
+          <div class="pill" title="Cle API Groq utilisee pour la transcription de l'import personalise">
+            <label for="personalizedGroqApiKey">Cle Groq</label>
+            <input id="personalizedGroqApiKey" class="text-input" type="password" placeholder="gsk_..." autocomplete="off" spellcheck="false" />
+          </div>
+
+          <button id="savePersonalizedGroqApiKey" type="button">Enregistrer cle Groq</button>
+          <button id="clearPersonalizedGroqApiKey" type="button">Effacer cle Groq</button>
+
+          <div class="menu-section-sub" id="personalizedGroqStatus">
+            Cle Groq non configuree dans l'application.
+          </div>
+        </section>
+
+        <section class="menu-section" data-menu-category="scene" data-electron-only="1">
           <h3>Recitateur personnalise</h3>
           <p class="menu-section-sub">Importe une recitation complete d'une sourate, preanalyse-la une fois, puis rejoue-la comme un recitateur local mot a mot.</p>
 
@@ -2493,18 +2511,6 @@
           <div class="pill" title="Fichier audio actuellement choisi pour l'import">
             <label for="personalizedSelectedFile">Audio (25 Mo max)</label>
             <input id="personalizedSelectedFile" class="text-input" type="text" readonly placeholder="Aucun fichier selectionne" />
-          </div>
-
-          <div class="pill" title="Cle API Groq utilisee pour la transcription de l'import personnalise">
-            <label for="personalizedGroqApiKey">Cle Groq</label>
-            <input id="personalizedGroqApiKey" class="text-input" type="password" placeholder="gsk_..." autocomplete="off" spellcheck="false" />
-          </div>
-
-          <button id="savePersonalizedGroqApiKey" type="button">Enregistrer cle Groq</button>
-          <button id="clearPersonalizedGroqApiKey" type="button">Effacer cle Groq</button>
-
-          <div class="menu-section-sub" id="personalizedGroqStatus">
-            Cle Groq non configuree dans l'application.
           </div>
 
           <p class="menu-section-sub">Astuce fluidite: si un verset coupe trop tot, augmente surtout la marge de fin puis relance la retouche sur l'import choisi.</p>

@@ -38,6 +38,9 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "runAfterFinish": false,
+      "installerIcon": "logo-build.ico",
+      "uninstallerIcon": "logo-build.ico",
+      "installerHeaderIcon": "logo-build.ico",
       "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "portable": {

@@ -952,12 +952,13 @@ function startLocalServer() {
 }
 
 function createMainWindow() {
+  const appIconPath = getAppIconPath();
   mainWindow = new BrowserWindow({
     width: 1440,
     height: 960,
     minWidth: 1100,
     minHeight: 720,
-    icon: getAppIconPath(),
+    icon: appIconPath,
     transparent: true,
     frame: false,
     backgroundColor: "#00000000",
@@ -970,6 +971,12 @@ function createMainWindow() {
       backgroundThrottling: false
     }
   });
+
+  if (appIconPath && typeof mainWindow.setIcon === "function") {
+    try {
+      mainWindow.setIcon(appIconPath);
+    } catch (_) {}
+  }
 
   mainWindow.loadURL(`http://${HOST}:${PORT}/`);
   mainWindow.webContents.on("did-finish-load", () => {
